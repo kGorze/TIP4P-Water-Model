@@ -62,12 +62,12 @@ def read_xvg(filename):
                     # Parse data lines
                     try:
                         values = [float(val) for val in line.strip().split()]
-                        if len(values) >= 2:
+                    if len(values) >= 2:
                             x.append(values[0])
                             y.append(values[1])
                             
                             # Store all columns after the first one
-                            if len(values) > 2:
+                        if len(values) > 2:
                                 while len(y_columns) < len(values) - 1:
                                     y_columns.append([])
                                 
@@ -300,7 +300,7 @@ def plot_hbond_distribution(x, y, title, xlabel, ylabel, output_path, reference_
     
     # Add a watermark with simulation details
     plt.figtext(0.5, 0.01, 'TIP4P Water Model - Hydrogen Bond Analysis', 
-               ha='center', fontsize=10, style='italic', alpha=0.7)
+                ha='center', fontsize=10, style='italic', alpha=0.7)
     
     plt.tight_layout()
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
@@ -425,7 +425,7 @@ def plot_hbond_lifetime(x, y, title, xlabel, ylabel, output_path):
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     print(f'  - {os.path.basename(output_path)} saved successfully')
-    
+
     # Create a log-scale plot to better visualize the decay
     plt.figure(figsize=(10, 6), dpi=300)
     
@@ -493,17 +493,41 @@ def create_combined_hbond_plot(hbnum_data, hbdist_data, hbang_data, hblife_data,
         x_array = np.array(x)
         y_array = np.array(y)
         
-        if HAS_SEABORN:
+    if HAS_SEABORN:
             sns.lineplot(x=x_array, y=y_array, color='#1f77b4', linewidth=2, ax=axs[0, 0])
-        else:
+    else:
             axs[0, 0].plot(x_array, y_array, color='#1f77b4', linewidth=2)
-        
-        # Calculate statistics
+    
+    # Calculate statistics
         stats = calculate_statistics(y_array)
-        
-        # Add horizontal line for mean
+    
+    # Add horizontal line for mean
         axs[0, 0].axhline(y=stats['mean'], color='#2ca02c', linestyle='--', alpha=0.7,
                         label=f'Mean: {stats["mean"]:.1f}')
+        
+        # Try to determine the number of water molecules
+        num_water_molecules = 5500  # Default based on the log output
+        topology_file = os.path.join(os.path.dirname(os.path.dirname(output_path)), "data", "topol.top")
+        if os.path.exists(topology_file):
+            with open(topology_file, 'r') as f:
+                for line in f:
+                    if "SOL" in line and not line.startswith(";"):
+                        parts = line.strip().split()
+                        if len(parts) >= 2:
+                            try:
+                                num_water_molecules = int(parts[-1])
+                                break
+                            except ValueError:
+                                pass
+        
+        # Calculate the reference value correctly
+        # Each water molecule forms ~3.5 H-bonds on average
+        # But each H-bond connects two molecules, so divide by 2
+        reference_hbonds = (REFERENCE_VALUES['hbonds_per_molecule'] * num_water_molecules) / 2
+        
+        # Add reference line
+        axs[0, 0].axhline(y=reference_hbonds, color='#ff7f0e', linestyle='--', alpha=0.7,
+                        label=f'Reference: {reference_hbonds:.1f}')
         
         axs[0, 0].set_xlabel(xlabel if xlabel else 'Time (ps)', fontsize=12)
         axs[0, 0].set_ylabel(ylabel if ylabel else 'Number of H-bonds', fontsize=12)
@@ -521,8 +545,8 @@ def create_combined_hbond_plot(hbnum_data, hbdist_data, hbang_data, hblife_data,
             sns.lineplot(x=x_array, y=y_array, color='#1f77b4', linewidth=2, ax=axs[0, 1])
         else:
             axs[0, 1].plot(x_array, y_array, color='#1f77b4', linewidth=2)
-        
-        # Add reference value
+    
+    # Add reference value
         ref_dist = REFERENCE_VALUES['hbond_distance_mean']
         axs[0, 1].axvline(x=ref_dist, color='#d62728', linestyle=':', alpha=0.7,
                         label=f'Reference: {ref_dist:.3f} nm (O-O)')
@@ -543,9 +567,9 @@ def create_combined_hbond_plot(hbnum_data, hbdist_data, hbang_data, hblife_data,
         x_array = np.array(x)
         y_array = np.array(y)
         
-        if HAS_SEABORN:
+    if HAS_SEABORN:
             sns.lineplot(x=x_array, y=y_array, color='#1f77b4', linewidth=2, ax=axs[1, 0])
-        else:
+    else:
             axs[1, 0].plot(x_array, y_array, color='#1f77b4', linewidth=2)
         
         # Add reference value
@@ -592,8 +616,8 @@ def create_combined_hbond_plot(hbnum_data, hbdist_data, hbang_data, hblife_data,
             sns.lineplot(x=x_array, y=y_array, color='#1f77b4', linewidth=2, ax=axs[1, 1])
         else:
             axs[1, 1].plot(x_array, y_array, color='#1f77b4', linewidth=2)
-        
-        # Add reference value
+    
+    # Add reference value
         ref_lifetime = REFERENCE_VALUES['hbond_lifetime']
         axs[1, 1].axvline(x=ref_lifetime, color='#d62728', linestyle=':', alpha=0.7,
                         label=f'Reference: {ref_lifetime:.2f} ps')
@@ -707,6 +731,17 @@ def plot_hbond_histogram(data, title, xlabel, ylabel, output_path, reference_val
     if reference_value is not None:
         plt.axvline(x=reference_value, color='#ff7f0e', linestyle='--', alpha=0.7,
                    label=f'Reference: {reference_value:.1f}')
+        
+        # Add explanation about the reference value
+        explanation_text = (
+            f"Reference value: {reference_value:.1f} H-bonds\n"
+            f"Based on ~3.5 H-bonds per molecule\n"
+            f"Formula: (3.5 × molecules) ÷ 2\n"
+            f"(Each H-bond connects two molecules)"
+        )
+        plt.text(0.98, 0.98, explanation_text, transform=plt.gca().transAxes, fontsize=10,
+                verticalalignment='top', horizontalalignment='right',
+                bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
     
     # Add a text box with statistics
     stats_text = (
@@ -792,8 +827,14 @@ def main():
             hist_xlabel = 'Number of H-bonds'
             hist_ylabel = 'Frequency'
             output_path = os.path.join(plots_dir, 'hbnum_histogram.png')
-            plot_hbond_histogram(y, hist_title, hist_xlabel, hist_ylabel, output_path, 
-                               REFERENCE_VALUES['hbonds_per_molecule'] * 5500)
+            
+            # Calculate the reference value correctly
+            # Each water molecule forms ~3.5 H-bonds on average
+            # But each H-bond connects two molecules, so divide by 2
+            # This gives the expected total number of H-bonds in the system
+            reference_hbonds = (REFERENCE_VALUES['hbonds_per_molecule'] * num_water_molecules) / 2
+            
+            plot_hbond_histogram(y, hist_title, hist_xlabel, hist_ylabel, output_path, reference_hbonds)
             
             # Store data for combined plot
             hbnum_data = (x, y, title, xlabel, ylabel, legend_labels)
@@ -859,7 +900,7 @@ def main():
             if len(y_columns) > 1:
                 plot_hbond_lifetime(x, y_columns[1], plot_title, plot_xlabel, plot_ylabel, output_path)
             else:
-                plot_hbond_lifetime(x, y, plot_title, plot_xlabel, plot_ylabel, output_path)
+            plot_hbond_lifetime(x, y, plot_title, plot_xlabel, plot_ylabel, output_path)
             
             # Store data for combined plot
             hblife_data = (x, y, title, xlabel, ylabel, legend_labels)
