@@ -1,0 +1,11 @@
+# PackMol input file for generating water box
+# Box with 4000 water molecules at density 0.93 g/cm³
+
+tolerance 3.0
+filetype pdb
+output water_box.pdb
+
+structure water.pdb
+    number 4000
+    inside box 0. 0. 0. 70.0 70.0 70.0
+end structure

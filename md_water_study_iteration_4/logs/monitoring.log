@@ -1,0 +1,3 @@
+czw, 27 lut 2025, 20:09:57 CET - Workflow still running: NVT equilibration in progress. No errors detected so far.
+czw, 27 lut 2025, 20:10:39 CET - Progress update: NVT equilibration completed successfully. NPT equilibration now in progress. No errors detected with the NPT step, suggesting the pressure coupling issue may be resolved.
+czw, 27 lut 2025, 20:12:23 CET - Final monitoring update: NPT equilibration appears to be running correctly without the expected pressure coupling error. This suggests the configuration may have been fixed already. The simulation will continue to run and complete the remaining steps.

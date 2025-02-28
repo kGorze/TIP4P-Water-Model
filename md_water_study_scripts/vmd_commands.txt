@@ -1,0 +1,46 @@
+# VMD commands for visualizing water simulation
+# Copy and paste these commands into the VMD console
+
+# Load the simulation
+mol new data/tip4p/273K/md.tpr waitfor all
+mol addfile data/tip4p/273K/md.xtc waitfor all
+
+# Delete the default representation
+mol delrep 0 top
+
+# Add a CPK representation for all atoms
+mol representation CPK 0.8 0.3 12.0 12.0
+mol color Name
+mol selection "all"
+mol material Opaque
+mol addrep top
+
+# Add a representation for hydrogen bonds
+mol representation HBonds 3.0 30.0
+mol color ColorID 4
+mol selection "name OW"
+mol material Opaque
+mol addrep top
+
+# Set the background color to white
+color Display Background white
+
+# Center the view on the system
+molinfo top set center_matrix "{{1 0 0 0} {0 1 0 0} {0 0 1 0} {0 0 0 1}}"
+display resetview
+
+# Rotate to a nice angle
+rotate x by -60
+rotate y by 30
+rotate z by 15
+
+# To save a movie, use the 'Movie Maker' tool in VMD:
+# 1. Go to Extensions -> Visualization -> Movie Maker
+# 2. Set the movie settings:
+#    - Trajectory: 0 to [last frame]
+#    - Step Size: 1 or higher (higher = faster movie, smaller file)
+#    - Format: MPEG or AVI
+#    - Renderer: Snapshot
+#    - Working Directory: data/tip4p/273K/movie
+#    - Filename: water_simulation
+# 3. Click 'Make Movie' 

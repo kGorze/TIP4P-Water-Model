@@ -1,0 +1,26 @@
+# Delete default representation
+mol delrep 0 top
+
+# Display water molecules as CPK
+mol representation CPK 1.0 0.3 18.0 16.0
+mol selection {all}
+mol color Name
+mol addrep top
+
+# Add hydrogen bonds
+mol representation HBonds 3.0 30.0 5.0
+mol selection {name O}
+mol color ColorID 4
+mol addrep top
+
+# Set up display
+display resize 800 600
+display projection Orthographic
+display depthcue off
+display nearclip set 0.01
+
+# Center the view
+mol showperiodic top 1
+
+# Set animation speed to slow
+animate speed 0.1 

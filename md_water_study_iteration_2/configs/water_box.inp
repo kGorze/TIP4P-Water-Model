@@ -1,0 +1,18 @@
+# PackMol input file for generating water box
+# Box with 4000 water molecules at density 0.93 g/cm³
+
+tolerance 3.0
+filetype pdb
+
+# Calculate box size based on density
+# For 4000 water molecules at 0.93 g/cm³
+# Box volume = (4000 * 18.015 g/mol) / (0.93 g/cm³ * 6.022e23) * 1e24
+# This gives approximately a 4.8 nm box
+# Adding extra spacing for better equilibration
+
+output water_box.pdb
+
+structure water.pdb
+  number 4000
+  inside box 0. 0. 0. 70. 70. 70.
+end structure 

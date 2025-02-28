@@ -1,0 +1,74 @@
+# This file was created Fri Feb 28 01:24:57 2025
+# Created by:
+#                     :-) GROMACS - gmx density, 2024.3 (-:
+# 
+# Executable:   /usr/local/gromacs/bin/gmx
+# Data prefix:  /usr/local/gromacs
+# Working dir:  /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/data
+# Command line:
+#   gmx density -f md.xtc -s md.tpr -o /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/analysis/density.xvg -dens mass -d Z
+# gmx density is part of G R O M A C S:
+#
+# GROtesk MACabre and Sinister
+#
+@    title "Partial density"
+@    xaxis  label "Average coordinate (nm)"
+@    yaxis  label "Density (kg m\S-3\N)"
+@TYPE xy
+@ view 0.15, 0.15, 0.75, 0.85
+@ legend on
+@ legend box on
+@ legend loctype view
+@ legend 0.78, 0.8
+@ legend length 2
+@ s0 legend "Water"
+   0.0636254          1006.73
+    0.190876          1001.32
+    0.318127          1003.46
+    0.445377          1005.88
+    0.572628          1003.82
+    0.699879          1006.42
+     0.82713          1005.57
+     0.95438          1005.93
+     1.08163           1005.5
+     1.20888          1002.27
+     1.33613          1006.98
+     1.46338          1004.95
+     1.59063          1006.11
+     1.71788          1002.23
+     1.84514           1004.9
+     1.97239          1002.63
+     2.09964          1007.35
+     2.22689          1000.72
+     2.35414          1008.44
+     2.48139          996.914
+     2.60864          1011.42
+     2.73589          1002.54
+     2.86314          1002.51
+     2.99039          1004.53
+     3.11764          1010.31
+     3.24489          999.487
+     3.37214          1009.09
+     3.49939          1005.97
+     3.62665          1001.45
+      3.7539          1009.43
+     3.88115          999.793
+      4.0084          1007.93
+     4.13565          1000.77
+      4.2629          1011.48
+     4.39015          1002.32
+      4.5174          1006.93
+     4.64465          1005.66
+      4.7719          1009.09
+     4.89915          999.574
+      5.0264             1006
+     5.15365          1004.92
+      5.2809          1005.22
+     5.40815          1002.08
+     5.53541          1005.94
+     5.66266             1013
+     5.78991          1000.25
+     5.91716          1005.51
+     6.04441          1001.93
+     6.17166          1002.36
+     6.29891          1005.11

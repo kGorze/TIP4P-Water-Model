@@ -1,0 +1,10 @@
+Free energy estimation for TIP4P water at 273K
+================================================
+
+Note: This is a simplified estimation based on average energy terms
+
+
+For more accurate free energy calculations, consider methods like:
+1. Thermodynamic Integration
+2. Free Energy Perturbation
+3. Umbrella Sampling

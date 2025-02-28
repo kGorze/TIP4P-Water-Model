@@ -1,0 +1,46 @@
+# This file was created Fri Feb 28 13:52:43 2025
+# Created by:
+#                   :-) GROMACS - gmx hbond-legacy, 2024.3 (-:
+# 
+# Executable:   /usr/local/gromacs/bin/gmx
+# Data prefix:  /usr/local/gromacs
+# Working dir:  /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/data
+# Command line:
+#   gmx hbond-legacy -f md.xtc -s md.tpr -b 0 -e 100 -life /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/analysis/hblife.xvg -ac /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/analysis/hbac.xvg
+# gmx hbond-legacy is part of G R O M A C S:
+#
+# Gallium Rubidium Oxygen Manganese Argon Carbon Silicon
+#
+@    title "Hydrogen Bonds"
+@    xaxis  label "Time (ps)"
+@    yaxis  label "Number"
+@TYPE xy
+@ view 0.15, 0.15, 0.75, 0.85
+@ legend on
+@ legend box on
+@ legend loctype view
+@ legend 0.78, 0.8
+@ legend length 2
+@ s0 legend "Hydrogen bonds"
+@ s1 legend "Pairs within 0.35 nm"
+         0       10088       17854
+         5       10108       17652
+        10       10059       17727
+        15       10107       17543
+        20       10102       17908
+        25       10095       18053
+        30       10076       17944
+        35       10057       18037
+        40       10117       17651
+        45       10042       17954
+        50       10110       18182
+        55       10151       18157
+        60       10147       17895
+        65       10138       17920
+        70       10069       17587
+        75       10092       17606
+        80       10067       17799
+        85       10042       18118
+        90       10057       17919
+        95       10114       17934
+       100       10071       17749

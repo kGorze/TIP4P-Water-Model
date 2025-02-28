@@ -1,0 +1,7 @@
+.idea/
+venv/
+.idea/.gitignore
+.idea/cursor.iml
+.idea/editor.xml
+.idea/modules.xml
+.idea/vcs.xml
