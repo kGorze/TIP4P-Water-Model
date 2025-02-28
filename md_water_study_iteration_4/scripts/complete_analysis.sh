@@ -301,6 +301,9 @@ run_step "generate_plots" "Generate plots for all analyses" "
     echo \"Running VACF plotting script...\"
     /usr/bin/python3 \"${ANALYSIS_DIR}/plotting_scripts/plot_vacf.py\" \"${ANALYSIS_DIR}\" \"${PLOTS_DIR}\"
     
+    echo \"Running enhanced energy analysis script...\"
+    /usr/bin/python3 \"${ANALYSIS_DIR}/plotting_scripts/plot_energy_analysis.py\" \"${ANALYSIS_DIR}\" \"${PLOTS_DIR}\"
+    
     echo \"Generating summary report...\"
     /usr/bin/python3 \"${ANALYSIS_DIR}/plotting_scripts/generate_summary_report.py\" \"${ANALYSIS_DIR}\" \"${PLOTS_DIR}\"
     

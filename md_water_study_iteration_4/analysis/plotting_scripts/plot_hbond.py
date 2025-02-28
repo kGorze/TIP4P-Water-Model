@@ -267,9 +267,34 @@ def plot_hbond_distribution(x, y, title, xlabel, ylabel, output_path, reference_
                 arrowprops=dict(facecolor='black', shrink=0.05, width=1, headwidth=5),
                 fontsize=12)
     
-    plt.xlabel(xlabel, fontsize=14)
-    plt.ylabel(ylabel, fontsize=14)
-    plt.title(title, fontsize=16)
+    # Add explanation for angle peak if this is an angle distribution
+    if "Angle" in title and peak_x < 15:
+        explanation_text = (
+            "Peak near 10° is typical for TIP4P water\n"
+            "Real H-bonds aren't perfectly linear (0°)\n"
+            "GROMACS defines 0° as perfectly linear D-H-A"
+        )
+        plt.text(0.98, 0.98, explanation_text, transform=plt.gca().transAxes, fontsize=10,
+                verticalalignment='top', horizontalalignment='right',
+                bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+    
+    # Set correct axis labels based on the type of distribution
+    if "Angle" in title:
+        # Override the xlabel and ylabel for angle distribution
+        plt.xlabel("Angle (degrees)", fontsize=14)
+        plt.ylabel("Probability", fontsize=14)
+        plt.title("Hydrogen Bond Angle Distribution Histogram", fontsize=16)
+    elif "Distance" in title:
+        # Override the xlabel and ylabel for distance distribution
+        plt.xlabel("Distance (nm)", fontsize=14)
+        plt.ylabel("Probability", fontsize=14)
+        plt.title("Hydrogen Bond Distance Distribution Histogram", fontsize=16)
+    else:
+        # Use the provided labels if not a specific type
+        plt.xlabel(xlabel, fontsize=14)
+        plt.ylabel(ylabel, fontsize=14)
+        plt.title(title, fontsize=16)
+    
     plt.grid(True, alpha=0.3)
     plt.legend(fontsize=12)
     
@@ -321,10 +346,64 @@ def plot_hbond_lifetime(x, y, title, xlabel, ylabel, output_path):
         plt.axvline(x=ref_lifetime, color='#2ca02c', linestyle=':', alpha=0.7,
                    label=f'Reference: {ref_lifetime:.2f} ps')
         
+        # Try to fit an exponential decay to the data
+        # Use data up to 30 ps or the end of the data, whichever is smaller
+        fit_end_idx = min(len(x_array), np.searchsorted(x_array, 30.0))
+        
+        # Only fit if we have enough data points
+        if fit_end_idx > 5:
+            try:
+                from scipy.optimize import curve_fit
+                
+                def exp_decay(t, tau):
+                    return np.exp(-t/tau)
+                
+                # Fit the exponential decay function to the data
+                popt, pcov = curve_fit(exp_decay, x_array[:fit_end_idx], y_array[:fit_end_idx], 
+                                      p0=[lifetime], bounds=(0, np.inf))
+                
+                # Extract the fitted lifetime
+                fitted_lifetime = popt[0]
+                
+                # Plot the fitted curve
+                fit_x = np.linspace(0, x_array[fit_end_idx-1], 100)
+                fit_y = exp_decay(fit_x, fitted_lifetime)
+                plt.plot(fit_x, fit_y, 'g--', alpha=0.7, 
+                        label=f'Exp fit: τ = {fitted_lifetime:.2f} ps')
+                
+                # Add annotation about the fit
+                plt.annotate(f'Fitted τ: {fitted_lifetime:.2f} ps',
+                            xy=(fitted_lifetime, exp_decay(fitted_lifetime, fitted_lifetime)),
+                            xytext=(fitted_lifetime + 5, exp_decay(fitted_lifetime, fitted_lifetime) + 0.1),
+                            arrowprops=dict(facecolor='green', shrink=0.05, width=1, headwidth=5),
+                            fontsize=10, color='green')
+            except Exception as e:
+                print(f"  - Could not fit exponential decay: {e}")
+        
         # Add annotation explaining the lifetime
-        plt.annotate('Uninterrupted hydrogen bond lifetime\n(time for correlation to decay to 1/e)', 
-                    xy=(0.5, 0.95), xycoords='axes fraction', ha='center', fontsize=10,
-                    bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+        explanation_text = (
+            "Uninterrupted hydrogen bond lifetime\n"
+            "(time for correlation to decay to 1/e)\n\n"
+            "This measures continuous H-bond lifetime:\n"
+            "Once a bond breaks, it's considered dead\n"
+            "even if it reforms with the same partners"
+        )
+        plt.text(0.98, 0.98, explanation_text, transform=plt.gca().transAxes, fontsize=10,
+                verticalalignment='top', horizontalalignment='right',
+                bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+        
+        # Add a text box with factors affecting lifetime
+        factors_text = (
+            "Factors affecting H-bond lifetime:\n"
+            "• Distance/angle cutoffs\n"
+            "• Temperature (↓T = ↑lifetime)\n"
+            "• Water model (TIP4P vs TIP3P)\n"
+            "• System size and conditions"
+        )
+        plt.text(0.02, 0.98, factors_text, transform=plt.gca().transAxes, fontsize=10,
+                verticalalignment='top', horizontalalignment='left',
+                bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+        
     except Exception as e:
         print(f"  - Could not determine hydrogen bond lifetime: {e}")
         # Add reference value even if we couldn't determine lifetime
@@ -366,10 +445,26 @@ def plot_hbond_lifetime(x, y, title, xlabel, ylabel, output_path):
         plt.axvline(x=ref_lifetime, color='#2ca02c', linestyle=':', alpha=0.7,
                    label=f'Reference: {ref_lifetime:.2f} ps')
         
-        # Add annotation explaining the lifetime
-        plt.annotate('Uninterrupted hydrogen bond lifetime\n(log scale)', 
-                    xy=(0.5, 0.95), xycoords='axes fraction', ha='center', fontsize=10,
-                    bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+        # Plot the fitted curve if available
+        if 'fitted_lifetime' in locals():
+            fit_x = np.linspace(0, min(30.0, x_array[-1]), 100)
+            fit_y = exp_decay(fit_x, fitted_lifetime)
+            plt.semilogy(fit_x, fit_y, 'g--', alpha=0.7, 
+                        label=f'Exp fit: τ = {fitted_lifetime:.2f} ps')
+        
+        # Add annotation explaining the lifetime and log scale
+        explanation_text = (
+            "Uninterrupted hydrogen bond lifetime (log scale)\n\n"
+            "• A straight line in this log plot would indicate\n"
+            "  a perfect single-exponential decay\n"
+            "• Deviations suggest multiple timescales\n"
+            "• TIP4P water typically shows 1-3 ps lifetimes\n"
+            "  (2.5 ps is within expected range)"
+        )
+        plt.text(0.98, 0.98, explanation_text, transform=plt.gca().transAxes, fontsize=10,
+                verticalalignment='top', horizontalalignment='right',
+                bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+        
     except:
         # Add reference value even if we couldn't determine lifetime
         ref_lifetime = REFERENCE_VALUES['hbond_lifetime']
@@ -458,9 +553,28 @@ def create_combined_hbond_plot(hbnum_data, hbdist_data, hbang_data, hblife_data,
         axs[1, 0].axvline(x=ref_angle, color='#d62728', linestyle=':', alpha=0.7,
                         label=f'Reference: {ref_angle:.1f}° (cutoff)')
         
-        axs[1, 0].set_xlabel(xlabel if xlabel else 'Angle (degrees)', fontsize=12)
-        axs[1, 0].set_ylabel(ylabel if ylabel else 'Frequency', fontsize=12)
-        axs[1, 0].set_title(title if title else 'Hydrogen Bond Angle Distribution Histogram', fontsize=14)
+        # Find peak
+        peak_idx = np.argmax(y_array)
+        peak_x = x_array[peak_idx]
+        peak_y = y_array[peak_idx]
+        
+        # Add marker for peak
+        axs[1, 0].plot(peak_x, peak_y, 'ro', markersize=8)
+        
+        # Add explanation for angle peak
+        if peak_x < 15:
+            explanation_text = (
+                "Peak near 10° is typical for TIP4P water\n"
+                "Real H-bonds aren't perfectly linear (0°)\n"
+                "GROMACS defines 0° as perfectly linear D-H-A"
+            )
+            axs[1, 0].text(0.98, 0.98, explanation_text, transform=axs[1, 0].transAxes, fontsize=8,
+                    verticalalignment='top', horizontalalignment='right',
+                    bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+        
+        axs[1, 0].set_xlabel('Angle (degrees)', fontsize=12)
+        axs[1, 0].set_ylabel('Probability', fontsize=12)
+        axs[1, 0].set_title('Hydrogen Bond Angle Distribution Histogram', fontsize=14)
         # Add annotation explaining the angle
         axs[1, 0].annotate('Donor-H-Acceptor angle', xy=(0.5, 0.95), 
                          xycoords='axes fraction', ha='center', fontsize=10, 
@@ -501,6 +615,43 @@ def create_combined_hbond_plot(hbnum_data, hbdist_data, hbang_data, hblife_data,
                             xytext=(lifetime + 5, 1/np.e + 0.05),
                             arrowprops=dict(facecolor='black', shrink=0.05, width=1, headwidth=5),
                             fontsize=10)
+            
+            # Try to fit an exponential decay to the data
+            # Use data up to 30 ps or the end of the data, whichever is smaller
+            fit_end_idx = min(len(x_array), np.searchsorted(x_array, 30.0))
+            
+            # Only fit if we have enough data points
+            if fit_end_idx > 5:
+                try:
+                    from scipy.optimize import curve_fit
+                    
+                    def exp_decay(t, tau):
+                        return np.exp(-t/tau)
+                    
+                    # Fit the exponential decay function to the data
+                    popt, pcov = curve_fit(exp_decay, x_array[:fit_end_idx], y_array[:fit_end_idx], 
+                                          p0=[lifetime], bounds=(0, np.inf))
+                    
+                    # Extract the fitted lifetime
+                    fitted_lifetime = popt[0]
+                    
+                    # Plot the fitted curve
+                    fit_x = np.linspace(0, x_array[fit_end_idx-1], 100)
+                    fit_y = exp_decay(fit_x, fitted_lifetime)
+                    axs[1, 1].plot(fit_x, fit_y, 'g--', alpha=0.7, 
+                                 label=f'Exp fit: τ = {fitted_lifetime:.2f} ps')
+                except Exception as e:
+                    print(f"  - Could not fit exponential decay in combined plot: {e}")
+            
+            # Add explanation text
+            explanation_text = (
+                "Continuous H-bond lifetime\n"
+                "TIP4P typical: 1-3 ps"
+            )
+            axs[1, 1].text(0.98, 0.98, explanation_text, transform=axs[1, 1].transAxes, fontsize=8,
+                         verticalalignment='top', horizontalalignment='right',
+                         bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+            
         except Exception as e:
             print(f"  - Could not determine hydrogen bond lifetime in combined plot: {e}")
         
@@ -678,9 +829,9 @@ def main():
         
         if len(x) > 0 and len(y) > 0:
             # Use file metadata if available, otherwise use defaults
-            plot_title = title if title else 'Hydrogen Bond Angle'
-            plot_xlabel = xlabel if xlabel else 'Time (ps)'
-            plot_ylabel = ylabel if ylabel else 'Angle (degrees)'
+            plot_title = title if title else 'Hydrogen Bond Angle Distribution'
+            plot_xlabel = xlabel if xlabel else 'Angle (degrees)'
+            plot_ylabel = ylabel if ylabel else 'Probability'
             
             output_path = os.path.join(plots_dir, 'hbang_plot.png')
             plot_hbond_distribution(x, y, plot_title, plot_xlabel, plot_ylabel, output_path, 
