@@ -2,13 +2,13 @@
 integrator               = md        ; leap-frog integrator
 nsteps                   = 1000000   ; 2 ns (1,000,000 steps at 2 fs)
 dt                       = 0.002     ; 2 fs timestep
-nstxout                  = 2500      ; save coordinates every 5.0 ps
-nstvout                  = 2500      ; save velocities every 5.0 ps
-nstenergy                = 2500      ; save energies every 5.0 ps
-nstlog                   = 2500      ; update log file every 5.0 ps
+nstxout                  = 25000     ; save coordinates every 50.0 ps (reduced from 2500)
+nstvout                  = 25000     ; save velocities every 50.0 ps (reduced from 2500)
+nstenergy                = 5000      ; save energies every 10.0 ps (reduced from 2500)
+nstlog                   = 5000      ; update log file every 10.0 ps (reduced from 2500)
 
 ; Compressed coordinate output for lighter files
-nstxout-compressed       = 2500      ; save compressed coordinates every 5.0 ps
+nstxout-compressed       = 5000      ; save compressed coordinates every 10.0 ps (reduced from 2500)
 compressed-x-precision   = 1000      ; precision for compressed trajectory
 
 ; Bond parameters
@@ -41,7 +41,7 @@ pcoupl                  = Parrinello-Rahman ; Parrinello-Rahman barostat for pro
 pcoupltype              = anisotropic       ; anisotropic scaling - each box vector can change independently
 tau_p                   = 2.0               ; time constant of 2.0 ps for pressure coupling (for stability)
 ref_p                   = 1.0 1.0 1.0 0.0 0.0 0.0 ; reference pressure, in bar (diagonal elements for anisotropic)
-compressibility         = 4.5e-5 4.5e-5 4.5e-5 0.0 0.0 0.0 ; water compressibility (diagonal elements for anisotropic)
+compressibility         = 1.8e-4 1.8e-4 1.8e-4 0.0 0.0 0.0 ; water compressibility at 273K (0°C)
 
 ; Periodic boundary conditions
 pbc                     = xyz       ; 3-D PBC

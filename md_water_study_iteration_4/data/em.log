@@ -44,7 +44,7 @@ GROMACS:      gmx mdrun, version 2024.3
 Executable:   /usr/local/gromacs/bin/gmx
 Data prefix:  /usr/local/gromacs
 Working dir:  /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/data
-Process ID:   28371
+Process ID:   128423
 Command line:
   gmx mdrun -deffnm em
 
@@ -156,7 +156,7 @@ Input Parameters:
    comm-mode                      = Linear
    nstcomm                        = 100
    bd-fric                        = 0
-   ld-seed                        = -134218753
+   ld-seed                        = -4752
    emtol                          = 1000
    emstep                         = 0.01
    niter                          = 20
@@ -375,7 +375,7 @@ Note that activating steepest-descent energy minimization via the integrator .md
 Initiating Steepest Descents
 
 Atom distribution over 1 domains: av 22000 stddev 0 min 22000 max 22000
-Started Steepest Descents on rank 0 Thu Feb 27 20:06:51 2025
+Started Steepest Descents on rank 0 Fri Feb 28 21:40:25 2025
 
 
 Steepest Descents:
@@ -440,7 +440,7 @@ Steepest Descents:
 
    Energies (kJ/mol)
         LJ (SR)  Disper. corr.   Coulomb (SR)   Coul. recip.      Potential
-    7.73503e+03   -6.77219e+02   -1.93223e+04    1.90149e+04    6.75039e+03
+    7.73503e+03   -6.77219e+02   -1.93223e+04    1.90149e+04    6.75038e+03
  Pres. DC (bar) Pressure (bar)
    -2.36743e+01    1.95386e+03
 
@@ -451,7 +451,7 @@ Steepest Descents:
         LJ (SR)  Disper. corr.   Coulomb (SR)   Coul. recip.      Potential
    -1.80516e+03   -6.77219e+02   -1.98525e+04    1.88198e+04   -3.51508e+03
  Pres. DC (bar) Pressure (bar)
-   -2.36743e+01    5.61659e+02
+   -2.36743e+01    5.61660e+02
 
            Step           Time
               8        8.00000
@@ -473,13 +473,13 @@ Steepest Descents:
 
 
 Steepest Descents converged to Fmax < 1000 in 10 steps
-Potential Energy  = -2.4471229e+04
-Maximum force     =  7.7576892e+02 on atom 16917
+Potential Energy  = -2.4471223e+04
+Maximum force     =  7.7576910e+02 on atom 16917
 Norm of force     =  1.1270242e+02
 
     D O M A I N   D E C O M P O S I T I O N   S T A T I S T I C S
 
  av. #atoms communicated per step for force:  2 x 0.0
 
-Finished mdrun on rank 0 Thu Feb 27 20:06:51 2025
+Finished mdrun on rank 0 Fri Feb 28 21:40:26 2025
 

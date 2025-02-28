@@ -2,10 +2,10 @@
 integrator               = md        ; leap-frog integrator
 nsteps                   = 50000     ; 100 ps with 2 fs timestep
 dt                       = 0.002     ; 2 fs
-nstxout                  = 500       ; save coordinates every 1.0 ps
-nstvout                  = 500       ; save velocities every 1.0 ps
-nstenergy                = 500       ; save energies every 1.0 ps
-nstlog                   = 500       ; update log file every 1.0 ps
+nstxout                  = 5000      ; save coordinates every 10.0 ps (reduced from 500)
+nstvout                  = 5000      ; save velocities every 10.0 ps (reduced from 500)
+nstenergy                = 5000      ; save energies every 10.0 ps (reduced from 500)
+nstlog                   = 5000      ; update log file every 10.0 ps (reduced from 500)
 
 ; Bond parameters
 continuation             = yes       ; continuing from NVT
@@ -37,7 +37,7 @@ pcoupl                  = parrinello-rahman  ; parrinello-rahman
 pcoupltype              = anisotropic ; anisotropic scaling - each box vector can change independently
 tau_p                   = 1.0       ; time constant of 1.0 ps for pressure coupling
 ref_p                   = 1.0 1.0 1.0 0.0 0.0 0.0 ; reference pressure, in bar (diagonal elements for anisotropic)
-compressibility         = 4.5e-5 4.5e-5 4.5e-5 0.0 0.0 0.0 ; water compressibility (diagonal elements for anisotropic)
+compressibility         = 1.8e-4 1.8e-4 1.8e-4 0.0 0.0 0.0 ; water compressibility at 273K (0°C)
 
 ; Periodic boundary conditions
 pbc                     = xyz       ; 3-D PBC

@@ -2,7 +2,7 @@
 ;	File 'mdout.mdp' was generated
 ;	By user: konrad_guest (1000)
 ;	On host: konrad-hp
-;	At date: Thu Feb 27 20:15:22 2025
+;	At date: Fri Feb 28 21:40:26 2025
 ;
 ;	Created by:
 ;	                     :-) GROMACS - gmx grompp, 2024.3 (-:
@@ -11,7 +11,7 @@
 ;	Data prefix:  /usr/local/gromacs
 ;	Working dir:  /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/data
 ;	Command line:
-;	  gmx grompp -f /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/configs/md.mdp -c npt.gro -t npt.cpt -p topol.top -o md.tpr
+;	  gmx grompp -f /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/configs/nvt.mdp -c em.gro -p topol.top -o nvt.tpr
 
 ; VARIOUS PREPROCESSING OPTIONS
 ; Preprocessor information: use cpp syntax.
@@ -25,7 +25,7 @@ integrator               = md
 ; Start time and timestep in ps
 tinit                    = 0
 dt                       = 0.002
-nsteps                   = 1000000
+nsteps                   = 50000
 ; For exact run continuation or redoing part of a run
 init-step                = 0
 ; Part index is updated automatically on checkpointing (keeps files separate)
@@ -63,15 +63,15 @@ rtpi                     = 0.05
 
 ; OUTPUT CONTROL OPTIONS
 ; Output frequency for coords (x), velocities (v) and forces (f)
-nstxout                  = 2500
-nstvout                  = 2500
+nstxout                  = 500
+nstvout                  = 500
 nstfout                  = 0
 ; Output frequency for energies to log file and energy file
-nstlog                   = 2500
+nstlog                   = 500
 nstcalcenergy            = 100
-nstenergy                = 2500
+nstenergy                = 500
 ; Output frequency and precision for .xtc file
-nstxout-compressed       = 2500
+nstxout-compressed       = 0
 compressed-x-precision   = 1000
 ; This selects the subset of atoms for the compressed
 ; trajectory file. You can select multiple groups. By
@@ -147,13 +147,13 @@ tc-grps                  = System
 tau_t                    = 0.1
 ref_t                    = 273
 ; pressure coupling     
-pcoupl                   = Parrinello-Rahman
-pcoupltype               = anisotropic
+pcoupl                   = no
+pcoupltype               = Isotropic
 nstpcouple               = -1
 ; Time constant (ps), compressibility (1/bar) and reference P (bar)
-tau_p                    = 2.0
-compressibility          = 4.5e-5 4.5e-5 4.5e-5 0.0 0.0 0.0
-ref_p                    = 1.0 1.0 1.0 0.0 0.0 0.0
+tau-p                    = 5
+compressibility          = 
+ref-p                    = 
 ; Scaling of reference coordinates, No, All or COM
 refcoord-scaling         = No
 
@@ -173,16 +173,16 @@ annealing-time           =
 annealing-temp           = 
 
 ; GENERATE VELOCITIES FOR STARTUP RUN
-gen_vel                  = no
-gen-temp                 = 300
-gen-seed                 = -153783765
+gen_vel                  = yes
+gen_temp                 = 273
+gen_seed                 = -608225353
 
 ; OPTIONS FOR BONDS    
 constraints              = h-bonds
 ; Type of constraint algorithm
 constraint_algorithm     = lincs
 ; Do not constrain the start configuration
-continuation             = yes
+continuation             = no
 ; Use successive overrelaxation to reduce the number of shake iterations
 Shake-SOR                = no
 ; Relative tolerance of shake
