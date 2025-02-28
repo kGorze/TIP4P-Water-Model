@@ -82,11 +82,21 @@ run_step "rdf_OO" "Calculate Oxygen-Oxygen RDF" "
 "
 
 run_step "rdf_OH" "Calculate Oxygen-Hydrogen RDF" "
-    gmx rdf -f md.xtc -s md.tpr -o \"${ANALYSIS_DIR}/rdf_OH.xvg\" -ref \"name OW\" -sel \"name HW1 or name HW2\" -seltype atom -selrpos atom -excl
+    # Create index groups for O and H atoms
+    echo -e \"name OW\\nname HW1 HW2\\nq\" | gmx make_ndx -f md.tpr -o rdf_oh.ndx
+    
+    # Run RDF with index groups and -excl flag to exclude intramolecular contributions
+    echo -e \"OW\\nHW1_HW2\" | gmx rdf -f md.xtc -s md.tpr -n rdf_oh.ndx -o \"${ANALYSIS_DIR}/rdf_OH.xvg\" -excl
 "
 
 run_step "rdf_HH" "Calculate Hydrogen-Hydrogen RDF" "
-    gmx rdf -f md.xtc -s md.tpr -o \"${ANALYSIS_DIR}/rdf_HH.xvg\" -ref \"name HW1 or name HW2\" -sel \"name HW1 or name HW2\" -seltype atom -selrpos atom -excl
+    # Create index group for H atoms if not already created
+    if [ ! -f rdf_h.ndx ]; then
+        echo -e \"name HW1 HW2\\nq\" | gmx make_ndx -f md.tpr -o rdf_h.ndx
+    fi
+    
+    # Run RDF with index groups and -excl flag to exclude intramolecular contributions
+    echo -e \"HW1_HW2\\nHW1_HW2\" | gmx rdf -f md.xtc -s md.tpr -n rdf_h.ndx -o \"${ANALYSIS_DIR}/rdf_HH.xvg\" -excl
 "
 
 # 2. MSD and Diffusion Coefficient

@@ -1,4 +1,4 @@
-# This file was created Fri Feb 28 15:24:16 2025
+# This file was created Fri Feb 28 00:40:10 2025
 # Created by:
 #                       :-) GROMACS - gmx rdf, 2024.3 (-:
 # 
@@ -6,10 +6,10 @@
 # Data prefix:  /usr/local/gromacs
 # Working dir:  /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/data
 # Command line:
-#   gmx rdf -f md.xtc -s md.tpr -o /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/analysis/rdf_HH.xvg -ref 'name HW1 or name HW2' -sel 'name HW1 or name HW2' -seltype atom -selrpos atom -excl
+#   gmx rdf -f md.xtc -s md.tpr -o /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/analysis/rdf_HH.xvg -ref 'name HW1 or name HW2' -sel 'name HW1 or name HW2'
 # gmx rdf is part of G R O M A C S:
 #
-# Great Red Oystrich Makes All Chemists Sane
+# Guyana Rwanda Oman Macau Angola Cameroon Senegal
 #
 @    title "Radial distribution"
 @    xaxis  label "r (nm)"
@@ -98,8 +98,8 @@
    0.144000    0.000013
    0.146000    0.000101
    0.148000    0.000172
-   0.150000    0.000322
-   0.152000    0.000628
+   0.150000    4.581543
+   0.152000   21.174728
    0.154000    0.001076
    0.156000    0.001953
    0.158000    0.003044
