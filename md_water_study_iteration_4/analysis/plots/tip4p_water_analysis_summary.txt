@@ -1,7 +1,7 @@
 TIP4P WATER MODEL ANALYSIS SUMMARY
 =================================
 
-Generated on 2025-02-28 15:27:02
+Generated on 2025-02-28 19:42:24
 
 SIMULATION DETAILS:
 ------------------
@@ -11,7 +11,9 @@ Water Density: 33.59 molecules/nm³
 PROPERTY COMPARISON WITH LITERATURE VALUES:
 -----------------------------------------
 Density (kg/m³): 1.005e+06 ± 3.4e+03 (+100886.39%) (Reference: 995)
-Diffusion Coefficient (10⁻⁹ m²/s): 3.746 (+149839703441.92%) (Reference: 2.5e-09)
+Diffusion Coefficient (10⁻⁹ m²/s): 3.217 (+39.87%) (Reference: 2.3e-09)
+Diffusion Fit Range (ps): 600-1400 ps
+Diffusion Fit Quality (R²): 0.9995
 O-O First Peak Position (Å): 2.76 (-1.43%) (Reference: 2.8)
 O-O Second Peak Position (Å): 2.96 (-34.22%) (Reference: 4.5)
 O-O First Minimum (Å): 3.28 (-0.61%) (Reference: 3.3)
@@ -20,6 +22,8 @@ H-bonds per Molecule: 1.836 (-50.39%) (Reference: 3.7)
 Temperature (K): 273.1 ± 2.1 (+0.05%) (Reference: 273)
 Pressure (bar): 14.53 ± 2.2e+02 (+1352.74%) (Reference: 1)
 Potential Energy (kJ/mol): N/A
+Energy per Molecule (kJ/mol): N/A
+Energy Fluctuation (%): N/A
 RMSD Final (nm): 4.455
 Note: Calculated from 5500 water molecules without correction factors (Reference: )
 
@@ -31,7 +35,8 @@ ANALYSIS SUMMARY:
    - Coordination number indicates tetrahedral arrangement of water molecules
 
 2. Dynamic Properties:
-   - Diffusion coefficient calculated from MSD
+   - Diffusion coefficient calculated from MSD using optimized fitting range
+   - Best fitting range: 600-1400 ps with R² = 0.9995
    - Hydrogen bond dynamics analyzed through lifetime and distributions
 
 3. Thermodynamic Properties:
@@ -50,3 +55,4 @@ PLOTS GENERATED:
 - Thermodynamics: thermodynamic_properties_plot.png
 - Density: density_profile_plot.png
 - Vibrational: vibrational_spectrum_plot.png
+- Diffusion Analysis: diffusion_analysis_plot.png

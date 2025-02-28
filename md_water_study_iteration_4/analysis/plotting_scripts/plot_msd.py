@@ -79,7 +79,8 @@ def read_xvg(filename):
         print(f'Error reading {filename}: {e}')
         return np.array([]), np.array([]), "", "", "", []
 
-def calculate_diffusion_coefficient(time, msd, fit_start_fraction=0.4, fit_end_fraction=0.8):
+def calculate_diffusion_coefficient(time, msd, fit_start_fraction=0.2, fit_end_fraction=0.8, 
+                                   min_fit_points=50, try_multiple_ranges=True):
     """
     Calculate the diffusion coefficient from MSD data using Einstein relation
     
@@ -90,9 +91,13 @@ def calculate_diffusion_coefficient(time, msd, fit_start_fraction=0.4, fit_end_f
     msd : array
         MSD values in nm^2
     fit_start_fraction : float
-        Fraction of the trajectory to start the linear fit (default: 0.4)
+        Fraction of the trajectory to start the linear fit (default: 0.2)
     fit_end_fraction : float
         Fraction of the trajectory to end the linear fit (default: 0.8)
+    min_fit_points : int
+        Minimum number of points required for fitting
+    try_multiple_ranges : bool
+        Whether to try multiple fitting ranges to find the best fit
         
     Returns:
     --------
@@ -113,14 +118,52 @@ def calculate_diffusion_coefficient(time, msd, fit_start_fraction=0.4, fit_end_f
     fit_end_idx : int
         Index where the fit ends
     """
+    # If we want to try multiple ranges to find the best fit
+    if try_multiple_ranges:
+        best_r2 = -1
+        best_results = None
+        
+        # Try different fitting ranges
+        start_fractions = [0.1, 0.15, 0.2, 0.25, 0.3]
+        end_fractions = [0.7, 0.75, 0.8, 0.85, 0.9]
+        
+        for start_frac in start_fractions:
+            for end_frac in end_fractions:
+                if end_frac <= start_frac:
+                    continue
+                    
+                # Skip if the range is too small
+                if int(len(time) * end_frac) - int(len(time) * start_frac) < min_fit_points:
+                    continue
+                
+                # Calculate with this range
+                results = calculate_diffusion_coefficient(
+                    time, msd, 
+                    fit_start_fraction=start_frac, 
+                    fit_end_fraction=end_frac,
+                    try_multiple_ranges=False
+                )
+                
+                # Unpack results
+                D, slope, intercept, r_value, p_value, std_err, fit_start_idx, fit_end_idx = results
+                
+                # Check if this is the best fit so far
+                if r_value**2 > best_r2:
+                    best_r2 = r_value**2
+                    best_results = results
+        
+        # Return the best fit
+        if best_results:
+            return best_results
+    
     # Determine the indices for fitting
     fit_start_idx = int(len(time) * fit_start_fraction)
     fit_end_idx = int(len(time) * fit_end_fraction)
     
     # Ensure we have enough points for fitting
-    if fit_end_idx - fit_start_idx < 10:
-        fit_start_idx = max(0, len(time) // 4)
-        fit_end_idx = min(len(time), len(time) * 3 // 4)
+    if fit_end_idx - fit_start_idx < min_fit_points:
+        fit_start_idx = max(0, len(time) // 5)
+        fit_end_idx = min(len(time), len(time) * 4 // 5)
     
     # Extract the data for fitting
     fit_time = time[fit_start_idx:fit_end_idx]
@@ -131,8 +174,8 @@ def calculate_diffusion_coefficient(time, msd, fit_start_fraction=0.4, fit_end_f
     
     # Calculate diffusion coefficient using Einstein relation: MSD = 6Dt
     # For 3D diffusion, D = slope / 6
-    # Convert from nm^2/ps to m^2/s: 1 nm^2/ps = 1e-9 m^2 / 1e-12 s = 1e-3 m^2/s
-    D = slope / 6.0 * 1e-3
+    # Convert from nm^2/ps to m^2/s: 1 nm^2/ps = 1e-18 m^2 / 1e-12 s = 1e-6 m^2/s
+    D = slope / 6.0 * 1e-6  # Correct conversion from nm²/ps to m²/s
     
     return D, slope, intercept, r_value, p_value, std_err, fit_start_idx, fit_end_idx
 
@@ -165,8 +208,10 @@ def plot_msd(x, y, title, xlabel, ylabel, legend_labels, output_path):
         
         msd_data = y
     
-    # Calculate diffusion coefficient
-    D, slope, intercept, r_value, p_value, std_err, fit_start_idx, fit_end_idx = calculate_diffusion_coefficient(x, msd_data)
+    # Calculate diffusion coefficient with improved fitting
+    D, slope, intercept, r_value, p_value, std_err, fit_start_idx, fit_end_idx = calculate_diffusion_coefficient(
+        x, msd_data, try_multiple_ranges=True, min_fit_points=50
+    )
     
     # Plot the linear fit
     fit_x = np.array([x[fit_start_idx], x[fit_end_idx]])
@@ -178,6 +223,7 @@ def plot_msd(x, y, title, xlabel, ylabel, legend_labels, output_path):
     ax1.text(0.05, 0.95, 
             f'D = {D:.3e} m²/s\n'
             f'Slope = {slope:.3f} nm²/ps\n'
+            f'Fit range: {x[fit_start_idx]:.0f}-{x[fit_end_idx]:.0f} ps\n'
             f'Reference D = {REFERENCE_VALUES["diffusion_coefficient"]:.3e} m²/s\n'
             f'Difference: {((D - REFERENCE_VALUES["diffusion_coefficient"]) / REFERENCE_VALUES["diffusion_coefficient"] * 100):.1f}%',
             transform=ax1.transAxes, fontsize=10, verticalalignment='top',
@@ -233,8 +279,8 @@ def plot_msd(x, y, title, xlabel, ylabel, legend_labels, output_path):
     plt.close()
     print(f'  - {os.path.basename(output_path)} saved successfully')
     
-    # Create a detailed diffusion analysis plot
-    plt.figure(figsize=(10, 8), dpi=300)
+    # Create a detailed diffusion analysis plot with multiple fitting ranges
+    plt.figure(figsize=(12, 10), dpi=300)
     
     # Plot MSD data
     if HAS_SEABORN:
@@ -246,11 +292,46 @@ def plot_msd(x, y, title, xlabel, ylabel, legend_labels, output_path):
     fit_x_full = x[fit_start_idx:fit_end_idx]
     fit_y_full = slope * fit_x_full + intercept
     plt.plot(fit_x_full, fit_y_full, 'r-', linewidth=2, 
-            label=f'Linear fit (R²={r_value**2:.3f})')
+            label=f'Best fit (R²={r_value**2:.3f})')
     
     # Highlight the fitting region
     plt.axvspan(x[fit_start_idx], x[fit_end_idx], alpha=0.2, color='green',
-               label=f'Fitting region ({fit_start_idx}-{fit_end_idx})')
+               label=f'Best fitting region ({x[fit_start_idx]:.0f}-{x[fit_end_idx]:.0f} ps)')
+    
+    # Try alternative fitting ranges for comparison
+    alt_ranges = [
+        (0.1, 0.5, 'Early regime'),
+        (0.3, 0.7, 'Middle regime'),
+        (0.5, 0.9, 'Late regime')
+    ]
+    
+    alt_colors = ['#ff7f0e', '#2ca02c', '#d62728']
+    alt_results = []
+    
+    for i, (start_frac, end_frac, label) in enumerate(alt_ranges):
+        alt_start_idx = int(len(x) * start_frac)
+        alt_end_idx = int(len(x) * end_frac)
+        
+        # Skip if range is too small
+        if alt_end_idx - alt_start_idx < 20:
+            continue
+            
+        alt_time = x[alt_start_idx:alt_end_idx]
+        alt_msd = msd_data[alt_start_idx:alt_end_idx]
+        
+        # Perform linear regression
+        alt_slope, alt_intercept, alt_r_value, alt_p_value, alt_std_err = stats.linregress(alt_time, alt_msd)
+        
+        # Calculate diffusion coefficient
+        alt_D = alt_slope / 6.0 * 1e-3
+        
+        # Store results
+        alt_results.append((alt_D, alt_slope, alt_r_value**2, alt_start_idx, alt_end_idx, label))
+        
+        # Plot alternative fit
+        alt_fit_y = alt_slope * alt_time + alt_intercept
+        plt.plot(alt_time, alt_fit_y, '--', color=alt_colors[i], linewidth=1.5, alpha=0.7,
+                label=f'{label} fit: D={alt_D:.3e} m²/s (R²={alt_r_value**2:.3f})')
     
     # Calculate the derivative of MSD (numerical)
     if len(x) > 10:
@@ -278,15 +359,22 @@ def plot_msd(x, y, title, xlabel, ylabel, legend_labels, output_path):
     
     # Add detailed information
     info_text = (
-        f"Diffusion Coefficient:\n"
+        f"Best Diffusion Coefficient:\n"
         f"D = {D:.3e} m²/s\n"
         f"Slope = {slope:.3f} nm²/ps\n"
-        f"Intercept = {intercept:.3f} nm²\n"
+        f"Fit range: {x[fit_start_idx]:.0f}-{x[fit_end_idx]:.0f} ps\n"
         f"R² = {r_value**2:.3f}\n"
         f"Standard Error = {std_err:.3e}\n\n"
         f"Reference D = {REFERENCE_VALUES['diffusion_coefficient']:.3e} m²/s\n"
-        f"Difference: {((D - REFERENCE_VALUES['diffusion_coefficient']) / REFERENCE_VALUES['diffusion_coefficient'] * 100):.1f}%"
+        f"Difference: {((D - REFERENCE_VALUES['diffusion_coefficient']) / REFERENCE_VALUES['diffusion_coefficient'] * 100):.1f}%\n\n"
     )
+    
+    # Add alternative fitting results
+    if alt_results:
+        info_text += "Alternative Fitting Ranges:\n"
+        for alt_D, alt_slope, alt_r2, alt_start_idx, alt_end_idx, label in alt_results:
+            info_text += f"{label}: D = {alt_D:.3e} m²/s, R² = {alt_r2:.3f}\n"
+            info_text += f"  Range: {x[alt_start_idx]:.0f}-{x[alt_end_idx]:.0f} ps\n"
     
     plt.text(0.02, 0.98, info_text, transform=plt.gca().transAxes, fontsize=10,
             verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))

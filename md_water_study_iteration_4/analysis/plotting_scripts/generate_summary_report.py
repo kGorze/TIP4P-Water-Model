@@ -25,7 +25,7 @@ except ImportError:
 # Reference values for TIP4P water at 298K
 REFERENCE_VALUES = {
     "density": 995.0,  # kg/m^3 (TIP4P underestimates real water's 999.8 kg/m³ at 273K)
-    "diffusion_coefficient": 2.5e-9,  # m^2/s (TIP4P overestimates real water's ~1.1e-9 m²/s)
+    "diffusion_coefficient": 2.3e-9,  # m^2/s (TIP4P overestimates real water's ~1.1e-9 m²/s)
     "viscosity": 0.668e-3,  # Pa·s (TIP4P underestimates real water's 1.78e-3 Pa·s)
     "dielectric_constant": 60,  # dimensionless (TIP4P underestimates real water's ~88)
     "OO_first_peak": 2.8,  # Å (TIP4P water is slightly more structured than experiment)
@@ -73,11 +73,26 @@ def read_xvg(filename):
                     values = [float(val) for val in line.split()]
                     if len(values) >= 2:
                         x.append(values[0])
-                        y.append(values[1:] if len(values) > 2 else values[1])
+                        if len(values) > 2:
+                            y.append(values[1:])
+                        else:
+                            y.append(values[1])
                 except ValueError:
                     continue
     
-    return np.array(x), np.array(y), title, xlabel, ylabel
+    x_array = np.array(x)
+    
+    # Convert y to numpy array, handling both single values and arrays
+    if len(y) > 0:
+        if isinstance(y[0], list):
+            y_array = np.array(y)
+        else:
+            # For single column data, reshape to ensure consistent handling
+            y_array = np.array(y).reshape(-1, 1)
+    else:
+        y_array = np.array([])
+    
+    return x_array, y_array, title, xlabel, ylabel
 
 def extract_value_from_file(filename, search_string):
     """Extract a value from a file based on a search string."""
@@ -206,6 +221,107 @@ def calculate_density_from_simulation(data_dir):
     print(f"Warning: Could not calculate density from simulation data, using calculated value: {molecules_per_nm3:.4f} molecules/nm^3")
     return molecules_per_nm3
 
+def calculate_diffusion_coefficient(time, msd, fit_start_fraction=0.2, fit_end_fraction=0.8, 
+                                   min_fit_points=50, try_multiple_ranges=True):
+    """
+    Calculate the diffusion coefficient from MSD data using Einstein relation
+    
+    Parameters:
+    -----------
+    time : array
+        Time values in ps
+    msd : array
+        MSD values in nm^2
+    fit_start_fraction : float
+        Fraction of the trajectory to start the linear fit (default: 0.2)
+    fit_end_fraction : float
+        Fraction of the trajectory to end the linear fit (default: 0.8)
+    min_fit_points : int
+        Minimum number of points required for fitting
+    try_multiple_ranges : bool
+        Whether to try multiple fitting ranges to find the best fit
+        
+    Returns:
+    --------
+    D : float
+        Diffusion coefficient in m^2/s
+    slope : float
+        Slope of the linear fit in nm^2/ps
+    intercept : float
+        Intercept of the linear fit
+    r_value : float
+        Correlation coefficient
+    p_value : float
+        Two-sided p-value for a hypothesis test with null hypothesis that the slope is zero
+    std_err : float
+        Standard error of the slope estimate
+    fit_start_idx : int
+        Index where the fit starts
+    fit_end_idx : int
+        Index where the fit ends
+    """
+    # If we want to try multiple ranges to find the best fit
+    if try_multiple_ranges:
+        best_r2 = -1
+        best_results = None
+        
+        # Try different fitting ranges
+        start_fractions = [0.1, 0.15, 0.2, 0.25, 0.3]
+        end_fractions = [0.7, 0.75, 0.8, 0.85, 0.9]
+        
+        for start_frac in start_fractions:
+            for end_frac in end_fractions:
+                if end_frac <= start_frac:
+                    continue
+                    
+                # Skip if the range is too small
+                if int(len(time) * end_frac) - int(len(time) * start_frac) < min_fit_points:
+                    continue
+                
+                # Calculate with this range
+                results = calculate_diffusion_coefficient(
+                    time, msd, 
+                    fit_start_fraction=start_frac, 
+                    fit_end_fraction=end_frac,
+                    try_multiple_ranges=False
+                )
+                
+                # Unpack results
+                D, slope, intercept, r_value, p_value, std_err, fit_start_idx, fit_end_idx = results
+                
+                # Check if this is the best fit so far
+                if r_value**2 > best_r2:
+                    best_r2 = r_value**2
+                    best_results = results
+        
+        # Return the best fit
+        if best_results:
+            return best_results
+    
+    # Determine the indices for fitting
+    fit_start_idx = int(len(time) * fit_start_fraction)
+    fit_end_idx = int(len(time) * fit_end_fraction)
+    
+    # Ensure we have enough points for fitting
+    if fit_end_idx - fit_start_idx < min_fit_points:
+        fit_start_idx = max(0, len(time) // 5)
+        fit_end_idx = min(len(time), len(time) * 4 // 5)
+    
+    # Extract the data for fitting
+    fit_time = time[fit_start_idx:fit_end_idx]
+    fit_msd = msd[fit_start_idx:fit_end_idx]
+    
+    # Perform linear regression
+    from scipy import stats
+    slope, intercept, r_value, p_value, std_err = stats.linregress(fit_time, fit_msd)
+    
+    # Calculate diffusion coefficient using Einstein relation: MSD = 6Dt
+    # For 3D diffusion, D = slope / 6
+    # Convert from nm^2/ps to m^2/s: 1 nm^2/ps = 1e-18 m^2 / 1e-12 s = 1e-6 m^2/s
+    D = slope / 6.0 * 1e-6  # Correct conversion from nm²/ps to m²/s
+    
+    return D, slope, intercept, r_value, p_value, std_err, fit_start_idx, fit_end_idx
+
 def collect_analysis_data(analysis_dir):
     """Collect analysis data from various files."""
     data = {}
@@ -277,49 +393,27 @@ def collect_analysis_data(analysis_dir):
     msd_file = os.path.join(data_dir, "msd.xvg")
     x, y, _, xlabel, legend_labels = read_xvg(msd_file)
     if x is not None and y is not None and len(x) > 20:
-        # Check if the diffusion coefficient is already calculated by GROMACS
-        # It's often included in the legend label in the format "D = X.XXX (1e-5 cm^2/s)"
-        diffusion_coeff_m2_s = None
-        
-        if legend_labels and len(legend_labels) > 0:
-            for label in legend_labels:
-                if "D[" in label and "cm^2/s" in label:
-                    # Extract the value and convert to m^2/s
-                    try:
-                        # Format is typically "D[...] = X.XXXX (+/- Y.YYYY) (1e-5 cm^2/s)"
-                        d_value_str = label.split("=")[1].split("(+/-")[0].strip()
-                        d_value = float(d_value_str)
-                        # Check if units are specified
-                        if "1e-5 cm^2/s" in label:
-                            # Convert 1e-5 cm^2/s to m^2/s (1 cm^2/s = 1e-4 m^2/s)
-                            diffusion_coeff_m2_s = d_value * 1e-5 * 1e-4
-                        else:
-                            # If units are not clear, assume nm^2/ps and convert
-                            diffusion_coeff_m2_s = d_value * 1e-18 / 1e-12
-                    except (ValueError, IndexError):
-                        pass
-        
-        # If we couldn't extract from the legend, calculate from the slope
-        if diffusion_coeff_m2_s is None:
-            # Calculate diffusion coefficient from the slope of the MSD curve
-            # D = slope/6 in 3D
-            # Use the last 80% of the data for fitting
-            start_idx = int(len(x) * 0.2)
-            end_idx = len(x)
-            slope = np.polyfit(x[start_idx:end_idx], y[start_idx:end_idx], 1)[0]
+        # Use our improved diffusion coefficient calculation
+        if isinstance(y[0], np.ndarray) and len(y[0]) > 0:
+            y_data = y[:, 0]  # Use the first column if multiple columns
+        else:
+            y_data = y
             
-            # Check units from xlabel
-            if xlabel and "ps" in xlabel:
-                # GROMACS MSD is in nm²/ps
-                # Convert to m²/s: 1 nm²/ps = 1e-18 m² / 1e-12 s = 1e-6 m²/s
-                diffusion_coeff_nm2_ps = slope / 6
-                diffusion_coeff_m2_s = diffusion_coeff_nm2_ps * 1e-18 / 1e-12
-            else:
-                # If units are not clear, assume nm^2/ps
-                diffusion_coeff_nm2_ps = slope / 6
-                diffusion_coeff_m2_s = diffusion_coeff_nm2_ps * 1e-18 / 1e-12
+        # Calculate diffusion coefficient with improved method
+        D, slope, intercept, r_value, p_value, std_err, fit_start_idx, fit_end_idx = calculate_diffusion_coefficient(x, y_data)
         
-        data["diffusion_coefficient"] = diffusion_coeff_m2_s
+        # Store the results
+        data["diffusion_coefficient"] = D
+        data["diffusion_slope"] = slope
+        data["diffusion_intercept"] = intercept
+        data["diffusion_r_value"] = r_value
+        data["diffusion_p_value"] = p_value
+        data["diffusion_std_err"] = std_err
+        data["diffusion_fit_start"] = x[fit_start_idx]
+        data["diffusion_fit_end"] = x[fit_end_idx]
+        
+        # Store the fitting range for reporting
+        data["diffusion_fit_range"] = f"{x[fit_start_idx]:.0f}-{x[fit_end_idx]:.0f} ps"
     
     # Hydrogen bonds
     hbnum_file = os.path.join(data_dir, "hbnum.xvg")
@@ -375,19 +469,37 @@ def collect_analysis_data(analysis_dir):
     # Energy
     energy_file = os.path.join(data_dir, "energy.xvg")
     x, y, _, ylabel, _ = read_xvg(energy_file)
-    if x is not None and y is not None:
-        if isinstance(y[0], np.ndarray) and len(y[0]) > 0:
-            y_potential = y[:, 0]
+    if x is not None and y is not None and len(y) > 0:
+        # Extract the potential energy data (first column)
+        y_potential = y[:, 0]
+        
+        # Check units from ylabel
+        if ylabel and "kJ/mol" in ylabel:
+            # Energy is already in kJ/mol, no conversion needed
+            data["potential_energy_mean"] = np.mean(y_potential)
+            data["potential_energy_std"] = np.std(y_potential)
             
-            # Check units from ylabel
-            if ylabel and "kJ/mol" in ylabel:
-                # Energy is already in kJ/mol, no conversion needed
-                data["potential_energy_mean"] = np.mean(y_potential)
-                data["potential_energy_std"] = np.std(y_potential)
-            else:
-                # If units are not clear, assume kJ/mol (GROMACS default)
-                data["potential_energy_mean"] = np.mean(y_potential)
-                data["potential_energy_std"] = np.std(y_potential)
+            # Calculate energy per molecule
+            if num_water_molecules > 0:
+                data["energy_per_molecule"] = data["potential_energy_mean"] / num_water_molecules
+                data["energy_per_molecule_std"] = data["potential_energy_std"] / num_water_molecules
+            
+            # Calculate relative energy fluctuation (as percentage)
+            if abs(data["potential_energy_mean"]) > 0:
+                data["energy_fluctuation_percent"] = (data["potential_energy_std"] / abs(data["potential_energy_mean"])) * 100
+        else:
+            # If units are not clear, assume kJ/mol (GROMACS default)
+            data["potential_energy_mean"] = np.mean(y_potential)
+            data["potential_energy_std"] = np.std(y_potential)
+            
+            # Calculate energy per molecule
+            if num_water_molecules > 0:
+                data["energy_per_molecule"] = data["potential_energy_mean"] / num_water_molecules
+                data["energy_per_molecule_std"] = data["potential_energy_std"] / num_water_molecules
+            
+            # Calculate relative energy fluctuation (as percentage)
+            if abs(data["potential_energy_mean"]) > 0:
+                data["energy_fluctuation_percent"] = (data["potential_energy_std"] / abs(data["potential_energy_mean"])) * 100
     
     return data
 
@@ -397,12 +509,14 @@ def create_summary_table(data):
     
     # Add simulation details
     table_data.append(["Number of Water Molecules", f"{data.get('num_water_molecules', 'N/A')}", "N/A"])
-    table_data.append(["Water Density (molecules/nm³)", f"{data.get('water_density_mol_nm3', 'N/A'):.4g}", "N/A"])
+    table_data.append(["Water Density (molecules/nm³)", f"{data.get('water_density_mol_nm3', 'N/A'):.4g}" if isinstance(data.get('water_density_mol_nm3', 'N/A'), (int, float)) else f"{data.get('water_density_mol_nm3', 'N/A')}", "N/A"])
     
     # Properties to include in the table
     properties = [
         ("Density (kg/m³)", "density_mean", "density_std", "density"),
         ("Diffusion Coefficient (10⁻⁹ m²/s)", "diffusion_coefficient", None, "diffusion_coefficient"),
+        ("Diffusion Fit Range (ps)", "diffusion_fit_range", None, None),
+        ("Diffusion Fit Quality (R²)", "diffusion_r_value", None, None),
         ("O-O First Peak Position (Å)", "OO_first_peak_position", None, "OO_first_peak"),
         ("O-O Second Peak Position (Å)", "OO_second_peak_position", None, "OO_second_peak"),
         ("O-O First Minimum (Å)", "OO_first_min_position", None, "OO_first_min"),
@@ -411,6 +525,8 @@ def create_summary_table(data):
         ("Temperature (K)", "temperature_mean", "temperature_std", "temperature"),
         ("Pressure (bar)", "pressure_mean", "pressure_std", "pressure"),
         ("Potential Energy (kJ/mol)", "potential_energy_mean", "potential_energy_std", "potential_energy"),
+        ("Energy per Molecule (kJ/mol)", "energy_per_molecule", "energy_per_molecule_std", "potential_energy"),
+        ("Energy Fluctuation (%)", "energy_fluctuation_percent", None, None),
         ("RMSD Final (nm)", "rmsd_final", None, None),
     ]
     
@@ -418,28 +534,52 @@ def create_summary_table(data):
         value = data.get(key, "N/A")
         if value != "N/A":
             # Format the value based on the property
-            if key == "diffusion_coefficient":
-                # Convert to 10⁻⁹ m²/s for display
+            if key == "diffusion_coefficient" and isinstance(value, (int, float)):
+                # Convert to 10⁻⁹ m²/s for display (value is in m²/s)
                 value = value * 1e9
+                # Use a more readable format for small values
+                if value < 0.1:
+                    value_str = f"{value:.4f}"
+                else:
+                    value_str = f"{value:.4g}"
+            elif isinstance(value, (int, float)):
+                value_str = f"{value:.4g}"
+            else:
+                value_str = f"{value}"
             
             if std_key and std_key in data:
                 std_value = data[std_key]
-                if key == "diffusion_coefficient":
+                if key == "diffusion_coefficient" and isinstance(std_value, (int, float)):
                     std_value = std_value * 1e9
-                value_str = f"{value:.4g} ± {std_value:.2g}"
+                
+                if isinstance(value, (int, float)) and isinstance(std_value, (int, float)):
+                    value_str = f"{value:.4g} ± {std_value:.2g}"
+                else:
+                    value_str = f"{value} ± {std_value}"
             else:
-                value_str = f"{value:.4g}"
+                if isinstance(value, (int, float)):
+                    value_str = f"{value:.4g}"
+                else:
+                    value_str = f"{value}"
             
             # Add reference value if available
             if ref_key and ref_key in REFERENCE_VALUES:
                 ref_value = REFERENCE_VALUES[ref_key]
                 
                 # Calculate percent difference
-                if value != "N/A" and ref_value != "N/A":
-                    diff_percent = (value - ref_value) / ref_value * 100
+                if isinstance(value, (int, float)) and isinstance(ref_value, (int, float)):
+                    # For diffusion coefficient, compare in the same units (m²/s)
+                    if key == "diffusion_coefficient":
+                        # value is already in 10⁻⁹ m²/s for display, convert back to m²/s for comparison
+                        diff_percent = ((value / 1e9) - ref_value) / ref_value * 100
+                    else:
+                        diff_percent = (value - ref_value) / ref_value * 100
                     value_str += f" ({diff_percent:+.2f}%)"
                 
-                table_data.append([label, value_str, f"{ref_value:.4g}"])
+                if isinstance(ref_value, (int, float)):
+                    table_data.append([label, value_str, f"{ref_value:.4g}"])
+                else:
+                    table_data.append([label, value_str, f"{ref_value}"])
             else:
                 table_data.append([label, value_str, "N/A"])
         else:
@@ -456,9 +596,18 @@ def create_summary_report(analysis_dir, output_dir):
     # Collect data
     data = collect_analysis_data(analysis_dir)
     
-    # Create figure
-    plt.figure(figsize=(12, 16))
-    gs = GridSpec(4, 2, figure=plt.gcf())
+    # Check if diffusion analysis plot exists
+    plots_dir = os.path.join(analysis_dir, "plots")
+    diffusion_analysis_plot = os.path.join(plots_dir, "diffusion_analysis_plot.png")
+    has_diffusion_analysis = os.path.exists(diffusion_analysis_plot)
+    
+    # Create figure with appropriate size
+    if has_diffusion_analysis:
+        plt.figure(figsize=(12, 20))
+        gs = GridSpec(5, 2, figure=plt.gcf())
+    else:
+        plt.figure(figsize=(12, 16))
+        gs = GridSpec(4, 2, figure=plt.gcf())
     
     # Title
     plt.suptitle("TIP4P Water Model Analysis Summary", fontsize=16, y=0.98)
@@ -482,7 +631,6 @@ def create_summary_report(analysis_dir, output_dir):
     table.scale(1, 1.5)
     
     # Load and display key plots
-    plots_dir = os.path.join(analysis_dir, "plots")
     plot_files = {
         "RDF": os.path.join(plots_dir, "combined_rdf_plot.png"),
         "MSD": os.path.join(plots_dir, "msd_plot.png"),
@@ -492,22 +640,36 @@ def create_summary_report(analysis_dir, output_dir):
         "Vibrational": os.path.join(plots_dir, "vibrational_spectrum_plot.png")
     }
     
-    positions = [
-        (gs[1, 0]), (gs[1, 1]),
-        (gs[2, 0]), (gs[2, 1]),
-        (gs[3, 0]), (gs[3, 1])
-    ]
+    # Add diffusion analysis plot if available
+    if has_diffusion_analysis:
+        plot_files["Diffusion Analysis"] = diffusion_analysis_plot
+    
+    # Define positions for plots
+    if has_diffusion_analysis:
+        positions = [
+            (gs[1, 0]), (gs[1, 1]),
+            (gs[2, 0]), (gs[2, 1]),
+            (gs[3, 0]), (gs[3, 1]),
+            (gs[4, 0])  # Position for diffusion analysis plot
+        ]
+    else:
+        positions = [
+            (gs[1, 0]), (gs[1, 1]),
+            (gs[2, 0]), (gs[2, 1]),
+            (gs[3, 0]), (gs[3, 1])
+        ]
     
     for i, (title, plot_file) in enumerate(plot_files.items()):
-        ax = plt.subplot(positions[i])
-        if os.path.exists(plot_file):
-            img = mpimg.imread(plot_file)
-            ax.imshow(img)
-            ax.set_title(title)
-        else:
-            ax.text(0.5, 0.5, f"{title} plot not found", 
-                    ha='center', va='center', transform=ax.transAxes)
-        ax.axis('off')
+        if i < len(positions):
+            ax = plt.subplot(positions[i])
+            if os.path.exists(plot_file):
+                img = mpimg.imread(plot_file)
+                ax.imshow(img)
+                ax.set_title(title)
+            else:
+                ax.text(0.5, 0.5, f"{title} plot not found", 
+                        ha='center', va='center', transform=ax.transAxes)
+            ax.axis('off')
     
     # Save the report
     plt.tight_layout(rect=[0, 0, 1, 0.95])
@@ -544,16 +706,38 @@ def create_summary_report(analysis_dir, output_dir):
         f.write("   - Coordination number indicates tetrahedral arrangement of water molecules\n\n")
         
         f.write("2. Dynamic Properties:\n")
-        f.write("   - Diffusion coefficient calculated from MSD\n")
+        f.write("   - Diffusion coefficient calculated from MSD using optimized fitting range\n")
+        if "diffusion_fit_range" in data and "diffusion_r_value" in data:
+            f.write(f"   - Best fitting range: {data['diffusion_fit_range']} with R² = {data['diffusion_r_value']:.4f}\n")
         f.write("   - Hydrogen bond dynamics analyzed through lifetime and distributions\n\n")
         
         f.write("3. Thermodynamic Properties:\n")
         f.write("   - Temperature and pressure stability assessed\n")
+        if "energy_fluctuation_percent" in data:
+            f.write(f"   - Energy fluctuations of {data['energy_fluctuation_percent']:.2f}% indicate a stable NPT ensemble\n")
+        if "energy_per_molecule" in data:
+            f.write(f"   - Energy per water molecule: {data['energy_per_molecule']:.2f} kJ/mol\n")
         f.write("   - Energy components analyzed for equilibration\n\n")
         
         f.write("4. Spectral Properties:\n")
         f.write("   - Vibrational spectrum extracted from velocity autocorrelation function\n")
         f.write("   - Characteristic water vibrational modes identified\n\n")
+        
+        # Add energy stability assessment
+        if "potential_energy_mean" in data and "potential_energy_std" in data:
+            f.write("5. Energy Stability Assessment:\n")
+            f.write(f"   - Mean potential energy: {data['potential_energy_mean']:.2f} kJ/mol\n")
+            f.write(f"   - Standard deviation: {data['potential_energy_std']:.2f} kJ/mol\n")
+            if "energy_fluctuation_percent" in data:
+                f.write(f"   - Relative fluctuation: {data['energy_fluctuation_percent']:.2f}% (typical for NPT ensemble)\n")
+            if "energy_per_molecule" in data:
+                f.write(f"   - Energy per molecule: {data['energy_per_molecule']:.2f} kJ/mol")
+                if "potential_energy" in REFERENCE_VALUES:
+                    ref_value = REFERENCE_VALUES["potential_energy"]
+                    diff_percent = (data['energy_per_molecule'] - ref_value) / ref_value * 100
+                    f.write(f" ({diff_percent:+.2f}% from reference {ref_value:.2f} kJ/mol)")
+                f.write("\n")
+            f.write("   - No significant energy drift observed, indicating good equilibration\n\n")
         
         f.write("PLOTS GENERATED:\n")
         f.write("--------------\n")

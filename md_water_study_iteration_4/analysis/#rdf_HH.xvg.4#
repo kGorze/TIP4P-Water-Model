@@ -1,4 +1,4 @@
-# This file was created Fri Feb 28 16:38:09 2025
+# This file was created Fri Feb 28 15:24:16 2025
 # Created by:
 #                       :-) GROMACS - gmx rdf, 2024.3 (-:
 # 
@@ -6,23 +6,23 @@
 # Data prefix:  /usr/local/gromacs
 # Working dir:  /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/data
 # Command line:
-#   gmx rdf -f md.xtc -s md.tpr -n rdf.ndx -o /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/analysis/rdf_HH.xvg -excl
+#   gmx rdf -f md.xtc -s md.tpr -o /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/analysis/rdf_HH.xvg -ref 'name HW1 or name HW2' -sel 'name HW1 or name HW2' -seltype atom -selrpos atom -excl
 # gmx rdf is part of G R O M A C S:
 #
-# GROup of MAchos and Cynical Suckers
+# Great Red Oystrich Makes All Chemists Sane
 #
 @    title "Radial distribution"
 @    xaxis  label "r (nm)"
 @    yaxis  label "g(r)"
 @TYPE xy
-@ subtitle "reference HW*"
+@ subtitle "reference name HW1 or name HW2"
 @ view 0.15, 0.15, 0.75, 0.85
 @ legend on
 @ legend box on
 @ legend loctype view
 @ legend 0.78, 0.8
 @ legend length 2
-@ s0 legend "HW*"
+@ s0 legend "name HW1 or name HW2"
    0.000000    0.000000
    0.002000    0.000000
    0.004000    0.000000

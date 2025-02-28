@@ -1,4 +1,4 @@
-# This file was created Fri Feb 28 15:58:39 2025
+# This file was created Thu Feb 27 22:18:01 2025
 # Created by:
 #                       :-) GROMACS - gmx rdf, 2024.3 (-:
 # 
@@ -6,23 +6,23 @@
 # Data prefix:  /usr/local/gromacs
 # Working dir:  /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/data
 # Command line:
-#   gmx rdf -f md.xtc -s md.tpr -n rdf.ndx -o /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/analysis/rdf_OO.xvg -excl
+#   gmx rdf -f md.xtc -s md.tpr -o /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/analysis/rdf_OO.xvg -ref 'name OW' -sel 'name OW'
 # gmx rdf is part of G R O M A C S:
 #
-# GRowing Old MAkes el Chrono Sweat
+# Giant Rising Ordinary Mutants for A Clerical Setup
 #
 @    title "Radial distribution"
 @    xaxis  label "r (nm)"
 @    yaxis  label "g(r)"
 @TYPE xy
-@ subtitle "reference OW"
+@ subtitle "reference name OW"
 @ view 0.15, 0.15, 0.75, 0.85
 @ legend on
 @ legend box on
 @ legend loctype view
 @ legend 0.78, 0.8
 @ legend length 2
-@ s0 legend "OW"
+@ s0 legend "name OW"
    0.000000    0.000000
    0.002000    0.000000
    0.004000    0.000000

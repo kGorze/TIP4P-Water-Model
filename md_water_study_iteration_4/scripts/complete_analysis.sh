@@ -72,37 +72,35 @@ list_checkpoints() {
 echo "Running complete analysis for TIP4P water model with checkpoints..."
 cd "${DATA_DIR}"
 
+# 0. Create index groups for RDF analysis
+run_step "create_rdf_index" "Create index groups for RDF analysis" "
+    # Create index groups for oxygen and hydrogen atoms
+    echo -e \"a OW\\na HW*\\nq\" | gmx make_ndx -f md.tpr -o rdf.ndx
+"
+
 # 1. RDF Analyses
 run_step "rdf_OO" "Calculate Oxygen-Oxygen RDF" "
-    if [ ! -f \"${ANALYSIS_DIR}/rdf_OO.xvg\" ]; then
-        gmx rdf -f md.xtc -s md.tpr -o \"${ANALYSIS_DIR}/rdf_OO.xvg\" -ref \"name OW\" -sel \"name OW\" -seltype atom -selrpos atom
-    else
-        echo \"O-O RDF file already exists, skipping calculation.\"
-    fi
+    # Use the OW index group for O-O RDF
+    echo -e \"3\\n3\" | gmx rdf -f md.xtc -s md.tpr -n rdf.ndx -o \"${ANALYSIS_DIR}/rdf_OO.xvg\" -excl
 "
 
 run_step "rdf_OH" "Calculate Oxygen-Hydrogen RDF" "
-    # Create index groups for O and H atoms
-    echo -e \"name OW\\nname HW1 HW2\\nq\" | gmx make_ndx -f md.tpr -o rdf_oh.ndx
-    
-    # Run RDF with index groups and -excl flag to exclude intramolecular contributions
-    echo -e \"OW\\nHW1_HW2\" | gmx rdf -f md.xtc -s md.tpr -n rdf_oh.ndx -o \"${ANALYSIS_DIR}/rdf_OH.xvg\" -excl
+    # Use the OW and HW* index groups for O-H RDF
+    echo -e \"3\\n4\" | gmx rdf -f md.xtc -s md.tpr -n rdf.ndx -o \"${ANALYSIS_DIR}/rdf_OH.xvg\" -excl
 "
 
 run_step "rdf_HH" "Calculate Hydrogen-Hydrogen RDF" "
-    # Create index group for H atoms if not already created
-    if [ ! -f rdf_h.ndx ]; then
-        echo -e \"name HW1 HW2\\nq\" | gmx make_ndx -f md.tpr -o rdf_h.ndx
-    fi
-    
-    # Run RDF with index groups and -excl flag to exclude intramolecular contributions
-    echo -e \"HW1_HW2\\nHW1_HW2\" | gmx rdf -f md.xtc -s md.tpr -n rdf_h.ndx -o \"${ANALYSIS_DIR}/rdf_HH.xvg\" -excl
+    # Use the HW* index group for H-H RDF
+    echo -e \"4\\n4\" | gmx rdf -f md.xtc -s md.tpr -n rdf.ndx -o \"${ANALYSIS_DIR}/rdf_HH.xvg\" -excl
 "
 
 # 2. MSD and Diffusion Coefficient
 run_step "msd_analysis" "Calculate Mean Square Displacement" "
     if [ ! -f \"${ANALYSIS_DIR}/msd.xvg\" ]; then
-        gmx msd -f md.xtc -s md.tpr -o \"${ANALYSIS_DIR}/msd.xvg\" -beginfit 1000 -endfit 2000 -sel \"name OW\"
+        # Use a longer fitting range and ensure we're only using oxygen atoms for diffusion calculation
+        # The -beginfit and -endfit values are in ps, not frames
+        # Using a longer fitting range (500-1800 ps) to better capture the diffusive regime
+        gmx msd -f md.xtc -s md.tpr -o \"${ANALYSIS_DIR}/msd.xvg\" -beginfit 500 -endfit 1800 -sel \"name OW\"
     else
         echo \"MSD file already exists, skipping calculation.\"
     fi

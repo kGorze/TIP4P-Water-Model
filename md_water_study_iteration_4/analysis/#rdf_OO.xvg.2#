@@ -1,4 +1,4 @@
-# This file was created Fri Feb 28 15:58:39 2025
+# This file was created Fri Feb 28 15:49:38 2025
 # Created by:
 #                       :-) GROMACS - gmx rdf, 2024.3 (-:
 # 
@@ -9,7 +9,7 @@
 #   gmx rdf -f md.xtc -s md.tpr -n rdf.ndx -o /home/konrad_guest/Documents/research/cursor/md_water_study_iteration_4/analysis/rdf_OO.xvg -excl
 # gmx rdf is part of G R O M A C S:
 #
-# GRowing Old MAkes el Chrono Sweat
+# GROningen MAchine for Chemical Simulation
 #
 @    title "Radial distribution"
 @    xaxis  label "r (nm)"
