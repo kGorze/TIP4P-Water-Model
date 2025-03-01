@@ -2,14 +2,18 @@
 integrator               = md        ; leap-frog integrator
 nsteps                   = 1000000   ; 2 ns (1,000,000 steps at 2 fs)
 dt                       = 0.002     ; 2 fs timestep
-nstxout                  = 25000     ; save coordinates every 50.0 ps (reduced from 2500)
-nstvout                  = 25000     ; save velocities every 50.0 ps (reduced from 2500)
-nstenergy                = 5000      ; save energies every 10.0 ps (reduced from 2500)
-nstlog                   = 5000      ; update log file every 10.0 ps (reduced from 2500)
+nstxout                  = 0         ; disable full precision coordinates
+nstvout                  = 0         ; disable velocities
+nstenergy                = 5000      ; save energies every 10.0 ps
+nstlog                   = 5000      ; update log file every 10.0 ps
 
-; Compressed coordinate output for lighter files
-nstxout-compressed       = 5000      ; save compressed coordinates every 10.0 ps (reduced from 2500)
-compressed-x-precision   = 1000      ; precision for compressed trajectory
+; Trajectory output - optimized for performance over space
+; Option 1: Less frequent compressed output (minimal performance impact)
+nstxout-compressed       = 25000     ; save compressed coordinates every 50.0 ps (reduced frequency)
+compressed-x-precision   = 100       ; lower precision for faster compression (100 instead of 1000)
+
+; Option 2: Uncomment to disable compression completely (maximum performance)
+; nstxout-compressed     = 0         ; disable compressed output completely
 
 ; Bond parameters
 continuation             = yes       ; continuing from NPT

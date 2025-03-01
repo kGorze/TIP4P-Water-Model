@@ -48,25 +48,25 @@ echo "Topology generated."
 # Step 3: Perform energy minimization
 echo "Step 3: Running energy minimization..."
 gmx grompp -f "${CONFIGS_DIR}/em.mdp" -c water_box.gro -p topol.top -o em.tpr -maxwarn 1 || { echo "grompp for em failed"; exit 1; }
-gmx mdrun -deffnm em || { echo "mdrun for em failed"; exit 1; }
+gmx mdrun -deffnm em -ntmpi 1 -ntomp 6 || { echo "mdrun for em failed"; exit 1; }
 echo "Energy minimization completed."
 
 # Step 4: Perform NVT equilibration
 echo "Step 4: Running NVT equilibration..."
 gmx grompp -f "${CONFIGS_DIR}/nvt.mdp" -c em.gro -p topol.top -o nvt.tpr || { echo "grompp for nvt failed"; exit 1; }
-gmx mdrun -deffnm nvt || { echo "mdrun for nvt failed"; exit 1; }
+gmx mdrun -deffnm nvt -ntmpi 1 -ntomp 6 || { echo "mdrun for nvt failed"; exit 1; }
 echo "NVT equilibration completed."
 
 # Step 5: Perform NPT equilibration
 echo "Step 5: Running NPT equilibration..."
 gmx grompp -f "${CONFIGS_DIR}/npt.mdp" -c nvt.gro -t nvt.cpt -p topol.top -o npt.tpr -maxwarn 1 || { echo "grompp for npt failed"; exit 1; }
-gmx mdrun -deffnm npt || { echo "mdrun for npt failed"; exit 1; }
+gmx mdrun -deffnm npt -ntmpi 1 -ntomp 6 || { echo "mdrun for npt failed"; exit 1; }
 echo "NPT equilibration completed."
 
 # Step 6: Perform production MD
 echo "Step 6: Running production MD (2 ns)..."
 gmx grompp -f "${CONFIGS_DIR}/md.mdp" -c npt.gro -t npt.cpt -p topol.top -o md.tpr || { echo "grompp for md failed"; exit 1; }
-gmx mdrun -deffnm md || { echo "mdrun for md failed"; exit 1; }
+gmx mdrun -deffnm md -ntmpi 1 -ntomp 6 || { echo "mdrun for md failed"; exit 1; }
 echo "Production MD completed."
 
 # Step 7: Run analysis
