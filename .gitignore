@@ -5,3 +5,21 @@ venv/
 .idea/editor.xml
 .idea/modules.xml
 .idea/vcs.xml
+
+# Ignore data directories in all iterations
+*/data/
+md_water_study_iteration_*/data/
+
+# Specifically ignore large PDB files
+*.pdb
+
+# Ignore other common large molecular dynamics files
+*.xtc
+*.trr
+*.tpr
+*.edr
+*.cpt
+*.gro
+
+# Keep specific files that you want to track despite being in data directories
+# Example: !*/data/README.md
