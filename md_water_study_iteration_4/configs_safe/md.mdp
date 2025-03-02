@@ -1,14 +1,22 @@
-; NPT equilibration parameters for TIP4P water at 273K (short test run)
+; Production MD parameters for TIP4P water at 273K (2 ns run)
 integrator               = md        ; leap-frog integrator
-nsteps                   = 5000      ; 10 ps with 2 fs timestep - shortened for testing
-dt                       = 0.002     ; 2 fs
-nstxout                  = 500       ; save coordinates every 1.0 ps (increased frequency for test)
-nstvout                  = 500       ; save velocities every 1.0 ps (increased frequency for test)
-nstenergy                = 500       ; save energies every 1.0 ps (increased frequency for test)
-nstlog                   = 500       ; update log file every 1.0 ps (increased frequency for test)
+nsteps                   = 1000000   ; 2 ns (1,000,000 steps at 2 fs)
+dt                       = 0.002     ; 2 fs timestep
+nstxout                  = 0         ; disable full precision coordinates
+nstvout                  = 0         ; disable velocities
+nstenergy                = 5000      ; save energies every 10.0 ps
+nstlog                   = 5000      ; update log file every 10.0 ps
+
+; Trajectory output - optimized for performance over space
+; Option 1: Less frequent compressed output (minimal performance impact)
+nstxout-compressed       = 25000     ; save compressed coordinates every 50.0 ps (reduced frequency)
+compressed-x-precision   = 100       ; lower precision for faster compression (100 instead of 1000)
+
+; Option 2: Uncomment to disable compression completely (maximum performance)
+; nstxout-compressed     = 0         ; disable compressed output completely
 
 ; Bond parameters
-continuation             = yes       ; continuing from NVT
+continuation             = yes       ; continuing from NPT
 constraint_algorithm     = lincs     ; holonomic constraints 
 constraints              = h-bonds   ; bonds involving H are constrained (enables 2 fs timestep)
 lincs_iter               = 1         ; accuracy of LINCS
@@ -29,13 +37,13 @@ fourierspacing          = 0.16      ; grid spacing for FFT
 ; Temperature coupling
 tcoupl                  = V-rescale ; velocity-rescaling thermostat (Bussi)
 tc-grps                 = System    ; couple entire system as one group
-tau_t                   = 0.1       ; time constant of 0.1 ps for efficient thermalization
+tau_t                   = 0.1       ; time constant for thermostat
 ref_t                   = 273       ; reference temperature 273K (0°C)
 
-; Pressure coupling - using anisotropic coupling to allow each box dimension to scale independently
-pcoupl                  = parrinello-rahman  ; parrinello-rahman
-pcoupltype              = anisotropic ; anisotropic scaling - each box vector can change independently
-tau_p                   = 1.0       ; time constant of 1.0 ps for pressure coupling
+; Pressure coupling - using anisotropic coupling with Parrinello-Rahman barostat for production
+pcoupl                  = Parrinello-Rahman ; Parrinello-Rahman barostat for proper NPT ensemble
+pcoupltype              = anisotropic       ; anisotropic scaling - each box vector can change independently
+tau_p                   = 2.0               ; time constant of 2.0 ps for pressure coupling (for stability)
 ref_p                   = 1.0 1.0 1.0 0.0 0.0 0.0 ; reference pressure, in bar (diagonal elements for anisotropic)
 compressibility         = 1.8e-4 1.8e-4 1.8e-4 0.0 0.0 0.0 ; water compressibility at 273K (0°C)
 

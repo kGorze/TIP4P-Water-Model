@@ -11,17 +11,12 @@ venv/
 md_water_study_iteration_*/data/
 
 # Specifically ignore large file types
-*.pdb
 *.xtc
 *.trr
 *.tpr
 *.edr
 *.cpt
-*.gro
 *.log
-*.mdp
-*.top
-*.inp
 *.ndx
 *.xvg
 

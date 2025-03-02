@@ -1,14 +1,14 @@
-; NVT equilibration parameters for TIP4P water at 273K (short test run)
+; NPT equilibration parameters for TIP4P water at 273K
 integrator               = md        ; leap-frog integrator
-nsteps                   = 5000      ; 10 ps with 2 fs timestep - shortened for testing
+nsteps                   = 50000     ; 100 ps with 2 fs timestep
 dt                       = 0.002     ; 2 fs
-nstxout                  = 500       ; save coordinates every 1.0 ps (increased frequency for test)
-nstvout                  = 500       ; save velocities every 1.0 ps (increased frequency for test)
-nstenergy                = 500       ; save energies every 1.0 ps (increased frequency for test)
-nstlog                   = 500       ; update log file every 1.0 ps (increased frequency for test)
+nstxout                  = 5000      ; save coordinates every 10.0 ps (reduced from 500)
+nstvout                  = 5000      ; save velocities every 10.0 ps (reduced from 500)
+nstenergy                = 5000      ; save energies every 10.0 ps (reduced from 500)
+nstlog                   = 5000      ; update log file every 10.0 ps (reduced from 500)
 
 ; Bond parameters
-continuation             = no        ; first dynamics run
+continuation             = yes       ; continuing from NVT
 constraint_algorithm     = lincs     ; holonomic constraints 
 constraints              = h-bonds   ; bonds involving H are constrained (enables 2 fs timestep)
 lincs_iter               = 1         ; accuracy of LINCS
@@ -32,8 +32,12 @@ tc-grps                 = System    ; couple entire system as one group
 tau_t                   = 0.1       ; time constant of 0.1 ps for efficient thermalization
 ref_t                   = 273       ; reference temperature 273K (0°C)
 
-; Pressure coupling
-pcoupl                  = no        ; no pressure coupling in NVT
+; Pressure coupling - using anisotropic coupling to allow each box dimension to scale independently
+pcoupl                  = parrinello-rahman  ; parrinello-rahman
+pcoupltype              = anisotropic ; anisotropic scaling - each box vector can change independently
+tau_p                   = 1.0       ; time constant of 1.0 ps for pressure coupling
+ref_p                   = 1.0 1.0 1.0 0.0 0.0 0.0 ; reference pressure, in bar (diagonal elements for anisotropic)
+compressibility         = 1.8e-4 1.8e-4 1.8e-4 0.0 0.0 0.0 ; water compressibility at 273K (0°C)
 
 ; Periodic boundary conditions
 pbc                     = xyz       ; 3-D PBC
@@ -42,6 +46,4 @@ pbc                     = xyz       ; 3-D PBC
 DispCorr                = EnerPres  ; account for cut-off vdW scheme (improves energy and pressure accuracy)
 
 ; Velocity generation
-gen_vel                 = yes       ; assign velocities from Maxwell distribution
-gen_temp                = 273       ; temperature for Maxwell distribution (273K)
-gen_seed                = -1        ; generate a random seed 
+gen_vel                 = no        ; Velocities from previous stage 

@@ -1,11 +1,11 @@
-; Energy minimization parameters for water box (TIP4P model) - short test run
+; Energy minimization parameters for water box (TIP4P model)
 
 ; Run parameters
 integrator               = steep     ; Steepest descent energy minimization
 emtol                    = 1000.0    ; Stop when max force < 1000 kJ/mol/nm
 emstep                   = 0.01      ; Initial step-size
-nsteps                   = 5000      ; Maximum number of steps - reduced for testing
-nstxout                  = 100       ; Write coordinates every 100 steps (increased frequency for test)
+nsteps                   = 50000     ; Maximum number of steps
+nstxout                  = 500       ; Write coordinates every 500 steps
 
 ; Neighbor searching
 cutoff-scheme           = Verlet    ; Neighbor search method

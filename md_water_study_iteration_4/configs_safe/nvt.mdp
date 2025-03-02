@@ -1,11 +1,11 @@
-; NVT equilibration parameters for TIP4P water at 273K (short test run)
+; NVT equilibration parameters for TIP4P water at 273K
 integrator               = md        ; leap-frog integrator
-nsteps                   = 5000      ; 10 ps with 2 fs timestep - shortened for testing
+nsteps                   = 50000     ; 100 ps with 2 fs timestep
 dt                       = 0.002     ; 2 fs
-nstxout                  = 500       ; save coordinates every 1.0 ps (increased frequency for test)
-nstvout                  = 500       ; save velocities every 1.0 ps (increased frequency for test)
-nstenergy                = 500       ; save energies every 1.0 ps (increased frequency for test)
-nstlog                   = 500       ; update log file every 1.0 ps (increased frequency for test)
+nstxout                  = 5000      ; save coordinates every 10.0 ps (reduced from 500)
+nstvout                  = 5000      ; save velocities every 10.0 ps (reduced from 500)
+nstenergy                = 5000      ; save energies every 10.0 ps (reduced from 500)
+nstlog                   = 5000      ; update log file every 10.0 ps (reduced from 500)
 
 ; Bond parameters
 continuation             = no        ; first dynamics run
