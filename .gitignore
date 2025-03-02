@@ -10,16 +10,35 @@ venv/
 */data/
 md_water_study_iteration_*/data/
 
-# Specifically ignore large PDB files
+# Specifically ignore large file types
 *.pdb
-
-# Ignore other common large molecular dynamics files
 *.xtc
 *.trr
 *.tpr
 *.edr
 *.cpt
 *.gro
+*.log
+*.mdp
+*.top
+*.inp
+*.ndx
+*.xvg
+
+# Ignore any file larger than 50MB
+# Note: This is a comment for humans, Git doesn't support this directly
 
 # Keep specific files that you want to track despite being in data directories
 # Example: !*/data/README.md
+
+# Ignore temporary files
+*~
+*.swp
+*.swo
+\#*\#
+.\#*
+*.bak
+*.tmp
+
+# Ignore the BFG jar file
+bfg.jar
