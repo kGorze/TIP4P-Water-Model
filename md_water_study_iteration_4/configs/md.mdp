@@ -1,19 +1,15 @@
 ; Production MD parameters for TIP4P water at 273K (short test run)
 integrator               = md        ; leap-frog integrator
-nsteps                   = 10000     ; 20 ps (10,000 steps at 2 fs) - shortened for testing
+nsteps                   = 10000      ; 20 ps (10,000 steps at 2 fs) - shortened for testing
 dt                       = 0.002     ; 2 fs timestep
-nstxout                  = 0         ; disable full precision coordinates
-nstvout                  = 0         ; disable velocities
-nstenergy                = 500       ; save energies every 1.0 ps (increased frequency for test)
-nstlog                   = 500       ; update log file every 1.0 ps (increased frequency for test)
+nstxout                  = 500       ; save coordinates every 1.0 ps
+nstvout                  = 500       ; save velocities every 1.0 ps
+nstenergy                = 500       ; save energies every 1.0 ps
+nstlog                   = 500       ; update log file every 1.0 ps
 
-; Trajectory output - optimized for performance over space
-; Option 1: Less frequent compressed output (minimal performance impact)
-nstxout-compressed       = 1000      ; save compressed coordinates every 2.0 ps (increased frequency for test)
-compressed-x-precision   = 100       ; lower precision for faster compression (100 instead of 1000)
-
-; Option 2: Uncomment to disable compression completely (maximum performance)
-; nstxout-compressed     = 0         ; disable compressed output completely
+; Trajectory output - optimized for testing
+nstxout-compressed       = 500       ; save compressed coordinates every 1.0 ps
+compressed-x-precision   = 1000      ; higher precision for better analysis
 
 ; Bond parameters
 continuation             = yes       ; continuing from NPT

@@ -1,0 +1,9 @@
+tolerance 2.0
+filetype pdb
+output water_box.pdb
+
+structure tip4p.pdb
+  number 5500
+  inside cube 0. 0. 0. 55.7
+end structure
+

@@ -794,17 +794,214 @@ def create_summary_report(analysis_dir, output_dir):
     return output_file, text_report
 
 def main():
-    """Main function."""
-    # Get the analysis directory
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    analysis_dir = os.path.dirname(script_dir)
-    output_dir = os.path.join(analysis_dir, "plots")
+    if len(sys.argv) < 3:
+        print("Usage: generate_summary_report.py <analysis_dir> <plots_dir>")
+        sys.exit(1)
+        
+    analysis_dir = sys.argv[1]
+    plots_dir = sys.argv[2]
     
-    # Create the output directory if it doesn't exist
-    os.makedirs(output_dir, exist_ok=True)
+    # Define data directory
+    data_dir = os.path.join(analysis_dir, "data")
+    
+    # Ensure plots directory exists
+    os.makedirs(plots_dir, exist_ok=True)
+    
+    # Collect data from various analysis files
+    data = {}
+    
+    # Density data
+    density_file = os.path.join(data_dir, 'density.xvg')
+    if os.path.exists(density_file):
+        x, y, _, ylabel, _ = read_xvg(density_file)
+        if x is not None and y is not None:
+            # Check if the units are in kg/m^3 from the ylabel
+            if ylabel and "kg m" in ylabel:
+                data["density_mean"] = np.mean(y)  # kg/m^3
+                data["density_std"] = np.std(y)    # kg/m^3
+            else:
+                # If units are not recognized, try to convert based on reasonable assumptions
+                print(f"Warning: Density units not recognized from file. Assuming g/cm^3 and converting to kg/m^3")
+                # Assuming g/cm^3, convert to kg/m^3 (1 g/cm^3 = 1000 kg/m^3)
+                data["density_mean"] = np.mean(y) * 1000.0
+                data["density_std"] = np.std(y) * 1000.0
+    else:
+        print(f"File {density_file} not found")
+    
+    # RDF data
+    rdf_file = os.path.join(data_dir, 'rdf_OO.xvg')
+    if os.path.exists(rdf_file):
+        x, y, _, xlabel, _ = read_xvg(rdf_file)
+        if x is not None and y is not None:
+            # Check if units are in nm from the xlabel and convert to Angstroms for display
+            nm_to_angstrom = 10.0  # 1 nm = 10 Å
+            
+            # Find first peak
+            first_peak_idx = np.argmax(y)
+            # Store both nm and Angstrom values
+            data["OO_first_peak_position_nm"] = x[first_peak_idx]
+            data["OO_first_peak_position"] = x[first_peak_idx] * nm_to_angstrom
+            data["OO_first_peak_height"] = y[first_peak_idx]
+            
+            # Find second peak - look after the first peak
+            if first_peak_idx + 10 < len(y):
+                # Look for the second peak after the first peak
+                second_peak_idx = first_peak_idx + 10 + np.argmax(y[first_peak_idx + 10:])
+                data["OO_second_peak_position_nm"] = x[second_peak_idx]
+                data["OO_second_peak_position"] = x[second_peak_idx] * nm_to_angstrom
+                data["OO_second_peak_height"] = y[second_peak_idx]
+            
+            # Calculate coordination number (approximate)
+            # Find first minimum after first peak
+            if first_peak_idx + 5 < len(y):
+                first_min_idx = first_peak_idx + 5 + np.argmin(y[first_peak_idx + 5:first_peak_idx + 30])
+                data["OO_first_min_position_nm"] = x[first_min_idx]
+                data["OO_first_min_position"] = x[first_min_idx] * nm_to_angstrom
+                
+                # Calculate coordination number using the density from simulation
+                water_density_mol_nm3 = calculate_density_from_simulation(data_dir)
+                rho = water_density_mol_nm3  # molecules/nm³ from simulation
+                dr = x[1] - x[0]
+                cn = 0
+                for i in range(1, first_min_idx):
+                    cn += 4 * np.pi * rho * x[i]**2 * y[i] * dr
+                data["coordination_number"] = cn
+    else:
+        print(f"File {rdf_file} not found")
+    
+    # MSD data
+    msd_file = os.path.join(data_dir, 'msd.xvg')
+    if os.path.exists(msd_file):
+        x, y, _, xlabel, legend_labels = read_xvg(msd_file)
+        if x is not None and y is not None and len(x) > 20:
+            # Use our improved diffusion coefficient calculation
+            if isinstance(y[0], np.ndarray) and len(y[0]) > 0:
+                y_data = y[:, 0]  # Use the first column if multiple columns
+            else:
+                y_data = y
+            
+            # Calculate diffusion coefficient with improved method
+            D, slope, intercept, r_value, p_value, std_err, fit_start_idx, fit_end_idx = calculate_diffusion_coefficient(x, y_data)
+            
+            # Store the results
+            data["diffusion_coefficient"] = D
+            data["diffusion_slope"] = slope
+            data["diffusion_intercept"] = intercept
+            data["diffusion_r_value"] = r_value
+            data["diffusion_p_value"] = p_value
+            data["diffusion_std_err"] = std_err
+            data["diffusion_fit_start"] = x[fit_start_idx]
+            data["diffusion_fit_end"] = x[fit_end_idx]
+            
+            # Store the fitting range for reporting
+            data["diffusion_fit_range"] = f"{x[fit_start_idx]:.0f}-{x[fit_end_idx]:.0f} ps"
+    else:
+        print(f"File {msd_file} not found")
+    
+    # Hydrogen bond data
+    hbond_file = os.path.join(data_dir, 'hbnum.xvg')
+    if os.path.exists(hbond_file):
+        x, y, _, _, _ = read_xvg(hbond_file)
+        if x is not None and y is not None:
+            if isinstance(y[0], np.ndarray):
+                y = y[:, 0]  # Take the first column if y is 2D
+            data["hbonds_mean"] = np.mean(y)
+            data["hbonds_std"] = np.std(y)
+            
+            # Calculate hydrogen bonds per molecule directly from the data
+            # The total number of hydrogen bonds divided by the number of molecules
+            num_water_molecules = get_num_water_molecules(data_dir)
+            data["hbonds_per_molecule"] = data["hbonds_mean"] / num_water_molecules
+            
+            # Add a note about the calculation method
+            data["hbonds_calculation_note"] = f"Calculated from {num_water_molecules} water molecules without correction factors"
+    else:
+        print(f"File {hbond_file} not found")
+    
+    # RMSD data
+    rmsd_file = os.path.join(data_dir, 'rmsd.xvg')
+    if os.path.exists(rmsd_file):
+        x, y, _, xlabel, _ = read_xvg(rmsd_file)
+        if x is not None and y is not None:
+            # Check units from xlabel
+            if xlabel and "nm" in xlabel:
+                # RMSD is already in nm, no conversion needed
+                data["rmsd_final"] = y[-1]
+                data["rmsd_mean"] = np.mean(y[int(len(y)*0.5):])  # Mean of the second half
+            else:
+                # If units are not clear, assume nm
+                data["rmsd_final"] = y[-1]
+                data["rmsd_mean"] = np.mean(y[int(len(y)*0.5):])
+    else:
+        print(f"File {rmsd_file} not found")
+    
+    # Temperature data
+    temp_file = os.path.join(data_dir, 'temperature.xvg')
+    if os.path.exists(temp_file):
+        x, y, _, _, _ = read_xvg(temp_file)
+        if x is not None and y is not None:
+            data["temperature_mean"] = np.mean(y)  # K
+            data["temperature_std"] = np.std(y)    # K
+    else:
+        print(f"File {temp_file} not found")
+    
+    # Pressure data
+    pressure_file = os.path.join(data_dir, 'pressure.xvg')
+    if os.path.exists(pressure_file):
+        x, y, _, ylabel, _ = read_xvg(pressure_file)
+        if x is not None and y is not None:
+            # Check units from ylabel
+            if ylabel and "bar" in ylabel:
+                # Pressure is already in bar, no conversion needed
+                data["pressure_mean"] = np.mean(y)
+                data["pressure_std"] = np.std(y)
+            else:
+                # If units are not clear, assume bar (GROMACS default)
+                data["pressure_mean"] = np.mean(y)
+                data["pressure_std"] = np.std(y)
+    else:
+        print(f"File {pressure_file} not found")
+    
+    # Energy data
+    energy_file = os.path.join(data_dir, 'energy.xvg')
+    if os.path.exists(energy_file):
+        x, y, _, ylabel, _ = read_xvg(energy_file)
+        if x is not None and y is not None and len(y) > 0:
+            # Extract the potential energy data (first column)
+            y_potential = y[:, 0]
+            
+            # Check units from ylabel
+            if ylabel and "kJ/mol" in ylabel:
+                # Energy is already in kJ/mol, no conversion needed
+                data["potential_energy_mean"] = np.mean(y_potential)
+                data["potential_energy_std"] = np.std(y_potential)
+                
+                # Calculate energy per molecule
+                if num_water_molecules > 0:
+                    data["energy_per_molecule"] = data["potential_energy_mean"] / num_water_molecules
+                    data["energy_per_molecule_std"] = data["potential_energy_std"] / num_water_molecules
+                
+                # Calculate relative energy fluctuation (as percentage)
+                if abs(data["potential_energy_mean"]) > 0:
+                    data["energy_fluctuation_percent"] = (data["potential_energy_std"] / abs(data["potential_energy_mean"])) * 100
+            else:
+                # If units are not clear, assume kJ/mol (GROMACS default)
+                data["potential_energy_mean"] = np.mean(y_potential)
+                data["potential_energy_std"] = np.std(y_potential)
+                
+                # Calculate energy per molecule
+                if num_water_molecules > 0:
+                    data["energy_per_molecule"] = data["potential_energy_mean"] / num_water_molecules
+                    data["energy_per_molecule_std"] = data["potential_energy_std"] / num_water_molecules
+                
+                # Calculate relative energy fluctuation (as percentage)
+                if abs(data["potential_energy_mean"]) > 0:
+                    data["energy_fluctuation_percent"] = (data["potential_energy_std"] / abs(data["potential_energy_mean"])) * 100
+    else:
+        print(f"File {energy_file} not found")
     
     # Create the summary report
-    report_file, text_report = create_summary_report(analysis_dir, output_dir)
+    report_file, text_report = create_summary_report(analysis_dir, plots_dir)
     print(f"Summary report created: {report_file}")
     print(f"Text report created: {text_report}")
 

@@ -112,11 +112,14 @@ def main():
     analysis_dir = sys.argv[1]
     plots_dir = sys.argv[2]
     
+    # Define data directory
+    data_dir = os.path.join(analysis_dir, "data")
+    
     # Ensure plots directory exists
     os.makedirs(plots_dir, exist_ok=True)
     
-    # RMSD Plot
-    rmsd_file = os.path.join(analysis_dir, 'rmsd.xvg')
+    # RMSD plot
+    rmsd_file = os.path.join(data_dir, 'rmsd.xvg')
     if os.path.exists(rmsd_file):
         print('Plotting RMSD...')
         x, y, file_title, file_xlabel, file_ylabel = read_xvg(rmsd_file)

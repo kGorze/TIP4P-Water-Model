@@ -62,12 +62,12 @@ def read_xvg(filename):
                     # Parse data lines
                     try:
                         values = [float(val) for val in line.strip().split()]
-                    if len(values) >= 2:
+                        if len(values) >= 2:
                             x.append(values[0])
                             y.append(values[1])
                             
                             # Store all columns after the first one
-                        if len(values) > 2:
+                            if len(values) > 2:
                                 while len(y_columns) < len(values) - 1:
                                     y_columns.append([])
                                 
@@ -493,15 +493,15 @@ def create_combined_hbond_plot(hbnum_data, hbdist_data, hbang_data, hblife_data,
         x_array = np.array(x)
         y_array = np.array(y)
         
-    if HAS_SEABORN:
+        if HAS_SEABORN:
             sns.lineplot(x=x_array, y=y_array, color='#1f77b4', linewidth=2, ax=axs[0, 0])
-    else:
+        else:
             axs[0, 0].plot(x_array, y_array, color='#1f77b4', linewidth=2)
-    
-    # Calculate statistics
+        
+        # Calculate statistics
         stats = calculate_statistics(y_array)
-    
-    # Add horizontal line for mean
+        
+        # Add horizontal line for mean
         axs[0, 0].axhline(y=stats['mean'], color='#2ca02c', linestyle='--', alpha=0.7,
                         label=f'Mean: {stats["mean"]:.1f}')
         
@@ -567,9 +567,9 @@ def create_combined_hbond_plot(hbnum_data, hbdist_data, hbang_data, hblife_data,
         x_array = np.array(x)
         y_array = np.array(y)
         
-    if HAS_SEABORN:
+        if HAS_SEABORN:
             sns.lineplot(x=x_array, y=y_array, color='#1f77b4', linewidth=2, ax=axs[1, 0])
-    else:
+        else:
             axs[1, 0].plot(x_array, y_array, color='#1f77b4', linewidth=2)
         
         # Add reference value
@@ -780,6 +780,9 @@ def main():
     analysis_dir = sys.argv[1]
     plots_dir = sys.argv[2]
     
+    # Define data directory
+    data_dir = os.path.join(analysis_dir, "data")
+    
     # Ensure plots directory exists
     os.makedirs(plots_dir, exist_ok=True)
     
@@ -808,7 +811,7 @@ def main():
     hblife_data = None
     
     # Plot hydrogen bond number
-    hbnum_file = os.path.join(analysis_dir, 'hbnum.xvg')
+    hbnum_file = os.path.join(data_dir, 'hbnum.xvg')
     if os.path.exists(hbnum_file):
         print('Plotting hydrogen bond number...')
         x, y, y_columns, title, xlabel, ylabel, legend_labels = read_xvg(hbnum_file)
@@ -842,7 +845,7 @@ def main():
         print(f"Hydrogen bond number file not found: {hbnum_file}")
     
     # Plot hydrogen bond distance
-    hbdist_file = os.path.join(analysis_dir, 'hbdist.xvg')
+    hbdist_file = os.path.join(data_dir, 'hbdist.xvg')
     if os.path.exists(hbdist_file):
         print('Plotting hydrogen bond distance...')
         x, y, y_columns, title, xlabel, ylabel, legend_labels = read_xvg(hbdist_file)
@@ -863,7 +866,7 @@ def main():
         print(f"Hydrogen bond distance file not found: {hbdist_file}")
     
     # Plot hydrogen bond angle
-    hbang_file = os.path.join(analysis_dir, 'hbang.xvg')
+    hbang_file = os.path.join(data_dir, 'hbang.xvg')
     if os.path.exists(hbang_file):
         print('Plotting hydrogen bond angle...')
         x, y, y_columns, title, xlabel, ylabel, legend_labels = read_xvg(hbang_file)
@@ -884,7 +887,7 @@ def main():
         print(f"Hydrogen bond angle file not found: {hbang_file}")
     
     # Plot hydrogen bond lifetime
-    hblife_file = os.path.join(analysis_dir, 'hblife.xvg')
+    hblife_file = os.path.join(data_dir, 'hblife.xvg')
     if os.path.exists(hblife_file):
         print('Plotting hydrogen bond lifetime...')
         x, y, y_columns, title, xlabel, ylabel, legend_labels = read_xvg(hblife_file)
@@ -900,7 +903,7 @@ def main():
             if len(y_columns) > 1:
                 plot_hbond_lifetime(x, y_columns[1], plot_title, plot_xlabel, plot_ylabel, output_path)
             else:
-            plot_hbond_lifetime(x, y, plot_title, plot_xlabel, plot_ylabel, output_path)
+                plot_hbond_lifetime(x, y, plot_title, plot_xlabel, plot_ylabel, output_path)
             
             # Store data for combined plot
             hblife_data = (x, y, title, xlabel, ylabel, legend_labels)
@@ -908,7 +911,7 @@ def main():
         print(f"Hydrogen bond lifetime file not found: {hblife_file}")
     
     # Also check for autocorrelation file
-    hbac_file = os.path.join(analysis_dir, 'hbac.xvg')
+    hbac_file = os.path.join(data_dir, 'hbac.xvg')
     if os.path.exists(hbac_file) and not os.path.exists(hblife_file):
         print('Plotting hydrogen bond autocorrelation...')
         x, y, y_columns, title, xlabel, ylabel, legend_labels = read_xvg(hbac_file)

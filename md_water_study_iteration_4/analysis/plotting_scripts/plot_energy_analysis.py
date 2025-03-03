@@ -255,11 +255,14 @@ def main():
     analysis_dir = sys.argv[1]
     plots_dir = sys.argv[2]
     
+    # Define data directory
+    data_dir = os.path.join(analysis_dir, "data")
+    
     # Ensure plots directory exists
     os.makedirs(plots_dir, exist_ok=True)
     
-    # Plot energy terms data with enhanced analysis
-    energy_terms_file = os.path.join(analysis_dir, 'energy_terms.xvg')
+    # Energy terms plot
+    energy_terms_file = os.path.join(data_dir, 'energy_terms.xvg')
     if os.path.exists(energy_terms_file):
         print('Creating enhanced energy terms analysis...')
         x, y, title, xlabel, ylabel, legend_labels = read_xvg(energy_terms_file)
@@ -274,23 +277,28 @@ def main():
             plot_enhanced_energy_analysis(x, y, plot_title, plot_xlabel, plot_ylabel, output_path)
     else:
         print(f"Energy terms file not found: {energy_terms_file}")
+    
+    # Check if any energy files exist for enhanced analysis
+    energy_files = [
+        os.path.join(data_dir, 'energy.xvg'),
+        os.path.join(data_dir, 'potential.xvg'),
+        os.path.join(data_dir, 'kinetic.xvg')
+    ]
+    
+    if any(os.path.exists(f) for f in energy_files):
+        print('Using general energy file for enhanced analysis...')
+        x, y, title, xlabel, ylabel, legend_labels = read_xvg(energy_files[0])
         
-        # Try alternative energy file
-        energy_file = os.path.join(analysis_dir, 'energy.xvg')
-        if os.path.exists(energy_file):
-            print('Using general energy file for enhanced analysis...')
-            x, y, title, xlabel, ylabel, legend_labels = read_xvg(energy_file)
+        if len(x) > 0 and len(y) > 0:
+            # Use file metadata if available, otherwise use defaults
+            plot_title = title if title else 'GROMACS Energies'
+            plot_xlabel = xlabel if xlabel else 'Time (ns)'
+            plot_ylabel = ylabel if ylabel else 'Energy (kJ/mol)'
             
-            if len(x) > 0 and len(y) > 0:
-                # Use file metadata if available, otherwise use defaults
-                plot_title = title if title else 'GROMACS Energies'
-                plot_xlabel = xlabel if xlabel else 'Time (ns)'
-                plot_ylabel = ylabel if ylabel else 'Energy (kJ/mol)'
-                
-                output_path = os.path.join(plots_dir, 'energy_enhanced_analysis.png')
-                plot_enhanced_energy_analysis(x, y, plot_title, plot_xlabel, plot_ylabel, output_path)
-        else:
-            print(f"No energy files found for enhanced analysis")
+            output_path = os.path.join(plots_dir, 'energy_enhanced_analysis.png')
+            plot_enhanced_energy_analysis(x, y, plot_title, plot_xlabel, plot_ylabel, output_path)
+    else:
+        print("No energy files found for enhanced analysis")
 
 if __name__ == "__main__":
     main() 

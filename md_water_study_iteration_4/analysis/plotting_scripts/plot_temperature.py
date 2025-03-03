@@ -157,6 +157,11 @@ def plot_time_series(x, y, title, xlabel, ylabel, legend_labels, output_path, re
         plot_pressure_time_series(x, y, title, xlabel, ylabel, legend_labels, output_path, reference_value)
         return
     
+    # Special handling for potential energy plots
+    if property_name == 'Potential Energy':
+        plot_potential_energy_time_series(x, y, title, xlabel, ylabel, legend_labels, output_path, reference_value)
+        return
+    
     plt.figure(figsize=(12, 7), dpi=300)
     
     # Check if y has multiple columns
@@ -189,42 +194,17 @@ def plot_time_series(x, y, title, xlabel, ylabel, legend_labels, output_path, re
     
     # Add reference value if provided
     if reference_value is not None:
-        # Special handling for potential energy - scale reference value to total system
-        if property_name == 'Potential Energy':
-            # Scale the per-molecule reference to the total system
-            total_reference = reference_value * NUM_WATER_MOLECULES
-            plt.axhline(y=total_reference, color='#d62728', linestyle=':', alpha=0.7,
-                       label=f'Reference (total): {total_reference:.2f}')
-            
-            # Add percent difference annotation based on per-molecule values
-            per_molecule_mean = stats['mean'] / NUM_WATER_MOLECULES
-            percent_diff = ((per_molecule_mean - reference_value) / reference_value) * 100
-            
-            # Add explanation text box
-            explanation_text = (
-                f"Reference value (-41.5 kJ/mol) is per water molecule\n"
-                f"For {NUM_WATER_MOLECULES} molecules, total reference = {total_reference:.2f} kJ/mol\n"
-                f"Observed mean = {stats['mean']:.2f} kJ/mol (total)\n"
-                f"Observed per molecule = {per_molecule_mean:.2f} kJ/mol\n"
-                f"Difference: {percent_diff:.2f}%"
-            )
-            
-            # Add text box for explanation
-            props = dict(boxstyle='round', facecolor='lightyellow', alpha=0.7)
-            plt.text(0.5, 0.25, explanation_text, transform=plt.gca().transAxes, fontsize=10,
-                    horizontalalignment='center', verticalalignment='center', bbox=props)
-        else:
-            # Standard reference line for other properties
-            plt.axhline(y=reference_value, color='#d62728', linestyle=':', alpha=0.7,
-                       label=f'Reference: {reference_value:.2f}')
-            
-            # Add percent difference annotation
-            percent_diff = ((stats['mean'] - reference_value) / reference_value) * 100
-            plt.annotate(f'Diff from ref: {percent_diff:.2f}%',
-                        xy=(x[-1], reference_value),
-                        xytext=(x[-1] - (x[-1]-x[0])*0.2, reference_value + stats['std']),
-                        arrowprops=dict(facecolor='black', shrink=0.05, width=1, headwidth=5),
-                        fontsize=10)
+        # Standard reference line for other properties
+        plt.axhline(y=reference_value, color='#d62728', linestyle=':', alpha=0.7,
+                   label=f'Reference: {reference_value:.2f}')
+        
+        # Add percent difference annotation
+        percent_diff = ((stats['mean'] - reference_value) / reference_value) * 100
+        plt.annotate(f'Diff from ref: {percent_diff:.2f}%',
+                    xy=(x[-1], reference_value),
+                    xytext=(x[-1] - (x[-1]-x[0])*0.2, reference_value + stats['std']),
+                    arrowprops=dict(facecolor='black', shrink=0.05, width=1, headwidth=5),
+                    fontsize=10)
     
     # Add shaded area for standard deviation
     if not multi_column:
@@ -384,158 +364,461 @@ def plot_pressure_time_series(x, y, title, xlabel, ylabel, legend_labels, output
     plt.close()
     print(f'  - {os.path.basename(output_path)} saved successfully')
 
-def plot_energy_components(x, y, legend_labels, output_path):
-    """Create a specialized plot for energy components"""
-    if len(y.shape) <= 1 or y.shape[1] <= 1:
-        print("  - Not enough energy components to plot")
-        return
+def plot_potential_energy_time_series(x, y, title, xlabel, ylabel, legend_labels, output_path, reference_value):
+    """Create an enhanced potential energy plot with proper scaling and unit handling"""
+    # Create figure
+    fig, ax = plt.subplots(figsize=(12, 7), dpi=300)
     
-    # Create a figure with two subplots - stacked and individual
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10), dpi=300)
+    # Extract data for plotting
+    if len(y.shape) > 1 and y.shape[1] > 0:
+        data = y[:, 0]  # Use first column if multiple columns
+    else:
+        data = y
     
-    # Plot individual components on the first subplot
-    for i in range(y.shape[1]):
-        label = legend_labels[i] if i < len(legend_labels) else f"Component {i+1}"
-        ax1.plot(x, y[:, i], label=label, linewidth=1.5)
+    # Calculate basic statistics
+    mean_val = np.mean(data)
+    std_val = np.std(data)
+    min_val = np.min(data)
+    max_val = np.max(data)
+    final_val = data[-1] if len(data) > 0 else 0
     
-    ax1.set_xlabel('Time (ns)', fontsize=12)
-    ax1.set_ylabel('Energy (kJ/mol)', fontsize=12)
-    ax1.set_title('Individual Energy Components', fontsize=14)
-    ax1.grid(True, alpha=0.3)
-    ax1.legend(fontsize=9, loc='best', ncol=2)
+    # Calculate per-molecule values
+    per_molecule_mean = mean_val / NUM_WATER_MOLECULES
     
-    # Plot stacked area chart on the second subplot
-    # Only include components that make sense in a stacked chart (exclude total energy)
-    components_to_stack = []
-    stack_labels = []
+    # Plot the time series with enhanced styling
+    if HAS_SEABORN:
+        sns.lineplot(x=x, y=data, color='#1f77b4', linewidth=2.5, ax=ax)
+    else:
+        ax.plot(x, data, color='#1f77b4', linewidth=2.5)
     
-    # Identify which components to include in the stack
-    exclude_terms = ['total', 'potential', 'kinetic']
-    for i in range(y.shape[1]):
-        label = legend_labels[i].lower() if i < len(legend_labels) else ""
-        if not any(term in label for term in exclude_terms):
-            components_to_stack.append(y[:, i])
-            stack_labels.append(legend_labels[i] if i < len(legend_labels) else f"Component {i+1}")
+    # Add mean line and standard deviation band
+    ax.axhline(y=mean_val, color='#2ca02c', linestyle='--', alpha=0.7, 
+              label=f'Mean: {mean_val:.2f} kJ/mol')
+    ax.fill_between(x, mean_val - std_val, mean_val + std_val, color='#2ca02c', alpha=0.2, 
+                   label=f'Std Dev: ±{std_val:.2f} kJ/mol')
     
-    if components_to_stack:
-        components_array = np.array(components_to_stack).T  # Transpose for stacking
+    # Determine if the data is likely total system energy or per-molecule energy
+    # If mean value is close to reference_value, it's likely per-molecule
+    # If mean value is close to reference_value * NUM_WATER_MOLECULES, it's likely total
+    is_total_energy = abs(mean_val) > 1000  # Arbitrary threshold, adjust as needed
+    
+    # Calculate the appropriate reference value and percent difference
+    if is_total_energy:
+        # Data is total system energy
+        total_reference = reference_value * NUM_WATER_MOLECULES
+        percent_diff = ((mean_val - total_reference) / abs(total_reference)) * 100
         
-        if HAS_SEABORN:
-            # Use a custom colormap for better visualization
-            cmap = sns.color_palette("viridis", n_colors=len(components_to_stack))
-            ax2.stackplot(x, components_array.T, labels=stack_labels, colors=cmap, alpha=0.7)
-        else:
-            ax2.stackplot(x, components_array.T, labels=stack_labels, alpha=0.7)
+        # Add reference line for total energy
+        ax.axhline(y=total_reference, color='#d62728', linestyle=':', alpha=0.7,
+                  label=f'Reference (total): {total_reference:.2f} kJ/mol')
+    else:
+        # Data is per-molecule energy
+        percent_diff = ((per_molecule_mean - reference_value) / abs(reference_value)) * 100
         
-        ax2.set_xlabel('Time (ns)', fontsize=12)
-        ax2.set_ylabel('Energy (kJ/mol)', fontsize=12)
-        ax2.set_title('Stacked Energy Components', fontsize=14)
-        ax2.grid(True, alpha=0.3)
-        ax2.legend(fontsize=9, loc='best', ncol=2)
+        # Add reference line for per-molecule energy
+        ax.axhline(y=reference_value * NUM_WATER_MOLECULES, color='#d62728', linestyle=':', alpha=0.7,
+                  label=f'Reference (scaled): {reference_value * NUM_WATER_MOLECULES:.2f} kJ/mol')
+    
+    # Add explanation text box
+    explanation_text = (
+        f"Reference value ({reference_value:.1f} kJ/mol) is per water molecule\n"
+        f"For {NUM_WATER_MOLECULES} molecules, total reference = {reference_value * NUM_WATER_MOLECULES:.2f} kJ/mol\n"
+        f"Observed mean = {mean_val:.2f} kJ/mol (total)\n"
+        f"Observed per molecule = {per_molecule_mean:.2f} kJ/mol\n"
+        f"Difference: {percent_diff:.2f}%"
+    )
+    
+    # Add text box for explanation
+    props = dict(boxstyle='round', facecolor='lightyellow', alpha=0.7)
+    ax.text(0.5, 0.25, explanation_text, transform=ax.transAxes, fontsize=10,
+           horizontalalignment='center', verticalalignment='center', bbox=props)
+    
+    # Add statistics text box
+    stats_text = (
+        f"Mean: {mean_val:.2f} kJ/mol\n"
+        f"Std Dev: {std_val:.2f} kJ/mol\n"
+        f"Min: {min_val:.2f} kJ/mol\n"
+        f"Max: {max_val:.2f} kJ/mol\n"
+        f"Final: {final_val:.2f} kJ/mol"
+    )
+    
+    # Add text box
+    props = dict(boxstyle='round', facecolor='white', alpha=0.7)
+    ax.text(0.02, 0.98, stats_text, transform=ax.transAxes, fontsize=10,
+           verticalalignment='top', bbox=props)
+    
+    # Set axis labels and title
+    ax.set_xlabel(xlabel, fontsize=14)
+    ax.set_ylabel(ylabel, fontsize=14)
+    ax.set_title(title, fontsize=16)
+    
+    # Add grid
+    ax.grid(True, alpha=0.3)
+    
+    # Set y-axis limits to focus on the data range with some padding
+    data_range = max_val - min_val
+    ax.set_ylim(min_val - 0.1 * data_range, max_val + 0.1 * data_range)
+    
+    # Add legend
+    ax.legend(fontsize=10, loc='best')
+    
+    # Add a watermark with simulation details
+    fig.text(0.5, 0.01, f'TIP4P Water Model - Potential Energy', 
+            ha='center', fontsize=10, style='italic', alpha=0.7)
     
     plt.tight_layout()
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     print(f'  - {os.path.basename(output_path)} saved successfully')
 
+def plot_energy_components(x, y, legend_labels, output_path):
+    """Create a specialized plot for energy components with enhanced visualization"""
+    if len(y.shape) <= 1 or y.shape[1] <= 1:
+        print("  - Not enough energy components to plot")
+        return
+    
+    # Create a figure with two subplots - individual components and energy drift
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 12), dpi=300, gridspec_kw={'height_ratios': [2, 1]})
+    
+    # Define a distinct color palette with high contrast
+    if HAS_SEABORN:
+        colors = sns.color_palette("tab10", n_colors=y.shape[1])
+    else:
+        colors = plt.cm.tab10.colors
+    
+    # Calculate statistics for each component
+    stats_data = []
+    for i in range(y.shape[1]):
+        component_data = y[:, i]
+        mean_val = np.mean(component_data)
+        std_val = np.std(component_data)
+        min_val = np.min(component_data)
+        max_val = np.max(component_data)
+        final_val = component_data[-1] if len(component_data) > 0 else 0
+        
+        # Store statistics for table
+        label = legend_labels[i] if i < len(legend_labels) else f"Component {i+1}"
+        stats_data.append({
+            'Component': label,
+            'Mean': mean_val,
+            'Std Dev': std_val,
+            'Min': min_val,
+            'Max': max_val,
+            'Final': final_val
+        })
+    
+    # Plot individual components on the first subplot with increased line thickness
+    for i in range(y.shape[1]):
+        label = legend_labels[i] if i < len(legend_labels) else f"Component {i+1}"
+        ax1.plot(x, y[:, i], label=label, linewidth=2.5, color=colors[i % len(colors)])
+    
+    # Add vertical markers for important time points
+    if len(x) > 5:
+        # Mark equilibration end (assuming first 20% is equilibration)
+        equil_time = x[len(x)//5]
+        ax1.axvline(x=equil_time, color='gray', linestyle=':', linewidth=2, alpha=0.7)
+        ax1.text(equil_time + 0.02*(x[-1]-x[0]), ax1.get_ylim()[0] + 0.05*(ax1.get_ylim()[1]-ax1.get_ylim()[0]), 
+                'Production Phase Start', fontsize=10, rotation=90, va='bottom')
+        
+        # Mark middle of production
+        mid_time = x[len(x)//2]
+        ax1.axvline(x=mid_time, color='gray', linestyle=':', linewidth=1.5, alpha=0.5)
+        
+        # Mark end of simulation
+        end_time = x[-1] - 0.05*(x[-1]-x[0])
+        ax1.axvline(x=end_time, color='gray', linestyle=':', linewidth=1.5, alpha=0.5)
+    
+    # Add gridlines to y-axis for easier reading
+    ax1.grid(True, axis='y', linestyle='--', alpha=0.7)
+    ax1.grid(True, axis='x', linestyle=':', alpha=0.3)
+    
+    # Add a secondary y-axis for kinetic energy if it exists
+    kinetic_idx = None
+    for i, label in enumerate(legend_labels):
+        if 'kinetic' in label.lower():
+            kinetic_idx = i
+            break
+    
+    if kinetic_idx is not None:
+        ax1_twin = ax1.twinx()
+        ax1_twin.plot(x, y[:, kinetic_idx], label=f"{legend_labels[kinetic_idx]} (right axis)", 
+                     linewidth=2.5, linestyle='--', color='darkred')
+        ax1_twin.set_ylabel('Kinetic Energy (kJ/mol)', fontsize=12, color='darkred')
+        ax1_twin.tick_params(axis='y', labelcolor='darkred')
+        ax1_twin.spines['right'].set_color('darkred')
+        
+        # Add legend for secondary axis
+        lines1, labels1 = ax1.get_legend_handles_labels()
+        lines2, labels2 = ax1_twin.get_legend_handles_labels()
+        ax1.legend(lines1 + lines2, labels1 + labels2, fontsize=10, loc='best', ncol=2)
+    else:
+        ax1.legend(fontsize=10, loc='best', ncol=2)
+    
+    ax1.set_xlabel('Time (ns)', fontsize=14)
+    ax1.set_ylabel('Energy (kJ/mol)', fontsize=14)
+    ax1.set_title('Individual Energy Components', fontsize=16, fontweight='bold')
+    
+    # Create a table with statistics for each component
+    table_data = []
+    table_colors = []
+    for i, stat in enumerate(stats_data):
+        table_data.append([
+            stat['Component'],
+            f"{stat['Mean']:.2f}",
+            f"{stat['Std Dev']:.2f}",
+            f"{stat['Min']:.2f}",
+            f"{stat['Max']:.2f}"
+        ])
+        table_colors.append(colors[i % len(colors)])
+    
+    # Plot energy drift as percentage over time in the bottom subplot
+    if len(x) > 10:  # Only if we have enough data points
+        # Calculate drift for total energy if available
+        total_idx = None
+        for i, label in enumerate(legend_labels):
+            if 'total' in label.lower():
+                total_idx = i
+                break
+        
+        if total_idx is not None:
+            # Calculate percentage drift relative to initial value
+            initial_energy = y[0, total_idx]
+            energy_drift_percent = [(e - initial_energy) / abs(initial_energy) * 100 for e in y[:, total_idx]]
+            
+            # Plot drift
+            ax2.plot(x, energy_drift_percent, linewidth=2.5, color='darkblue', label='Total Energy Drift')
+            ax2.set_xlabel('Time (ns)', fontsize=14)
+            ax2.set_ylabel('Energy Drift (%)', fontsize=14)
+            ax2.set_title('Energy Conservation (Drift)', fontsize=16, fontweight='bold')
+            ax2.grid(True, linestyle='--', alpha=0.7)
+            
+            # Add horizontal line at zero
+            ax2.axhline(y=0, color='black', linestyle='-', linewidth=1, alpha=0.5)
+            
+            # Add drift statistics
+            final_drift = energy_drift_percent[-1]
+            drift_per_ns = final_drift / x[-1] if x[-1] > 0 else 0
+            
+            drift_text = (
+                f"Final Drift: {final_drift:.3f}%\n"
+                f"Drift Rate: {drift_per_ns:.3f}% per ns\n"
+                f"Drift Quality: {'Excellent' if abs(final_drift) < 0.01 else 'Good' if abs(final_drift) < 0.1 else 'Acceptable' if abs(final_drift) < 1 else 'Poor'}"
+            )
+            
+            ax2.text(0.02, 0.95, drift_text, transform=ax2.transAxes, fontsize=11,
+                    verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+            
+            # Add vertical markers matching the top plot
+            if len(x) > 5:
+                ax2.axvline(x=equil_time, color='gray', linestyle=':', linewidth=2, alpha=0.7)
+                ax2.axvline(x=mid_time, color='gray', linestyle=':', linewidth=1.5, alpha=0.5)
+                ax2.axvline(x=end_time, color='gray', linestyle=':', linewidth=1.5, alpha=0.5)
+        else:
+            # If no total energy, plot potential energy components drift
+            for i in range(min(3, y.shape[1])):  # Limit to 3 components for clarity
+                component_data = y[:, i]
+                initial_value = component_data[0]
+                drift_percent = [(e - initial_value) / abs(initial_value) * 100 for e in component_data]
+                
+                label = legend_labels[i] if i < len(legend_labels) else f"Component {i+1}"
+                ax2.plot(x, drift_percent, linewidth=2.5, color=colors[i % len(colors)], 
+                        label=f"{label} Drift")
+            
+            ax2.set_xlabel('Time (ns)', fontsize=14)
+            ax2.set_ylabel('Energy Component Drift (%)', fontsize=14)
+            ax2.set_title('Energy Components Stability', fontsize=16, fontweight='bold')
+            ax2.grid(True, linestyle='--', alpha=0.7)
+            ax2.legend(fontsize=10, loc='best')
+            
+            # Add horizontal line at zero
+            ax2.axhline(y=0, color='black', linestyle='-', linewidth=1, alpha=0.5)
+    else:
+        # If not enough data for drift analysis, show statistics table instead
+        ax2.axis('off')  # Turn off axis
+        
+        # Create a table with statistics
+        columns = ['Component', 'Mean (kJ/mol)', 'Std Dev', 'Min', 'Max']
+        table = ax2.table(cellText=table_data, colLabels=columns, loc='center', cellLoc='center')
+        
+        # Style the table
+        table.auto_set_font_size(False)
+        table.set_fontsize(10)
+        table.scale(1, 1.5)
+        
+        # Color the component names according to their plot colors
+        for i, color in enumerate(table_colors):
+            table[(i+1, 0)].set_facecolor(matplotlib.colors.to_rgba(color, alpha=0.3))
+    
+    # Add a title for the entire figure
+    plt.suptitle('Energy Components Analysis - TIP4P Water Model', fontsize=18, fontweight='bold', y=0.98)
+    
+    # Add a caption with simulation conditions
+    sim_details = (
+        f"TIP4P Water Model | {NUM_WATER_MOLECULES} molecules | "
+        f"Temperature: {REFERENCE_VALUES['temperature']} K | "
+        f"Pressure: {REFERENCE_VALUES['pressure']} bar | "
+        f"Simulation Time: {x[-1]:.1f} ns"
+    )
+    plt.figtext(0.5, 0.01, sim_details, ha='center', fontsize=11, 
+               bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8, edgecolor='gray'))
+    
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust for the suptitle and caption
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f'  - {os.path.basename(output_path)} saved successfully')
+
 def create_thermodynamic_properties_plot(analysis_dir, plots_dir):
-    """Create a combined plot of thermodynamic properties"""
+    """Create a combined plot of thermodynamic properties with enhanced visualization"""
     # Create a figure with 2x2 subplots
     fig, axs = plt.subplots(2, 2, figsize=(15, 12), dpi=300)
     
+    # Define data directory
+    data_dir = os.path.join(analysis_dir, "data")
+    
+    # Set a consistent style for all subplots
+    for ax in axs.flatten():
+        ax.grid(True, linestyle='--', alpha=0.7)
+        for spine in ax.spines.values():
+            spine.set_linewidth(1.5)
+    
     # Temperature subplot
-    temp_file = os.path.join(analysis_dir, 'temperature.xvg')
+    temp_file = os.path.join(data_dir, 'temperature.xvg')
     if os.path.exists(temp_file):
         x, y, _, _, _, _ = read_xvg(temp_file)
         if len(x) > 0 and len(y) > 0:
+            # Plot with enhanced styling
             if HAS_SEABORN:
-                sns.lineplot(x=x, y=y, color='#1f77b4', ax=axs[0, 0])
+                sns.lineplot(x=x, y=y, color='#1f77b4', ax=axs[0, 0], linewidth=2.5)
             else:
-                axs[0, 0].plot(x, y, color='#1f77b4')
+                axs[0, 0].plot(x, y, color='#1f77b4', linewidth=2.5)
             
-            # Add reference line
-            axs[0, 0].axhline(y=REFERENCE_VALUES['temperature'], color='#d62728', 
-                             linestyle=':', alpha=0.7)
+            # Add reference line with annotation
+            ref_temp = REFERENCE_VALUES['temperature']
+            axs[0, 0].axhline(y=ref_temp, color='#d62728', linestyle='--', alpha=0.7, 
+                             linewidth=2, label=f'Reference: {ref_temp} K')
             
             # Calculate statistics
             temp_mean = np.mean(y)
             temp_std = np.std(y)
             
-            # Add text with statistics
-            stats_text = f"Mean: {temp_mean:.1f} K\nStd Dev: {temp_std:.1f} K"
+            # Add text with statistics and enhanced styling
+            stats_text = (
+                f"Mean: {temp_mean:.1f} K\n"
+                f"Std Dev: {temp_std:.1f} K\n"
+                f"Target: {REFERENCE_VALUES['temperature']:.1f} K\n"
+                f"Deviation: {abs(temp_mean - REFERENCE_VALUES['temperature']):.1f} K"
+            )
             axs[0, 0].text(0.05, 0.95, stats_text, transform=axs[0, 0].transAxes, 
-                          fontsize=10, verticalalignment='top', 
-                          bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+                          fontsize=11, verticalalignment='top', 
+                          bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'))
             
-            axs[0, 0].set_title('Temperature', fontsize=14)
-            axs[0, 0].set_xlabel('Time (ns)', fontsize=12)
-            axs[0, 0].set_ylabel('Temperature (K)', fontsize=12)
-            axs[0, 0].grid(True, alpha=0.3)
+            # Mark equilibration region if simulation is long enough
+            if len(x) > 5:
+                equil_time = x[len(x)//5]  # Assume first 20% is equilibration
+                axs[0, 0].axvline(x=equil_time, color='gray', linestyle=':', linewidth=2, alpha=0.7)
+                axs[0, 0].text(equil_time + 0.5, axs[0, 0].get_ylim()[0] + 0.1*(axs[0, 0].get_ylim()[1]-axs[0, 0].get_ylim()[0]), 
+                              'Production', fontsize=10, rotation=0, va='bottom')
+            
+            axs[0, 0].set_title('Temperature', fontsize=16, fontweight='bold')
+            axs[0, 0].set_xlabel('Time (ps)', fontsize=14)
+            axs[0, 0].set_ylabel('Temperature (K)', fontsize=14)
+            axs[0, 0].tick_params(axis='both', which='major', labelsize=12)
+            axs[0, 0].legend(fontsize=11, framealpha=0.8)
     
     # Pressure subplot
-    pressure_file = os.path.join(analysis_dir, 'pressure.xvg')
+    pressure_file = os.path.join(data_dir, 'pressure.xvg')
     if os.path.exists(pressure_file):
         x, y, _, _, _, _ = read_xvg(pressure_file)
         if len(x) > 0 and len(y) > 0:
+            # Plot with enhanced styling
             if HAS_SEABORN:
-                sns.lineplot(x=x, y=y, color='#2ca02c', ax=axs[0, 1])
+                sns.lineplot(x=x, y=y, color='#2ca02c', ax=axs[0, 1], linewidth=2.5)
             else:
-                axs[0, 1].plot(x, y, color='#2ca02c')
+                axs[0, 1].plot(x, y, color='#2ca02c', linewidth=2.5)
             
-            # Add reference line
-            axs[0, 1].axhline(y=REFERENCE_VALUES['pressure'], color='#d62728', 
-                             linestyle=':', alpha=0.7)
+            # Add reference line with annotation
+            ref_pressure = REFERENCE_VALUES['pressure']
+            axs[0, 1].axhline(y=ref_pressure, color='#d62728', linestyle='--', alpha=0.7, 
+                             linewidth=2, label=f'Reference: {ref_pressure} bar')
             
             # Calculate statistics
             pressure_mean = np.mean(y)
             pressure_std = np.std(y)
             
-            # Add text with statistics
+            # Add text with statistics and enhanced styling
             stats_text = (
                 f"Mean: {pressure_mean:.1f} bar\n"
                 f"Std Dev: {pressure_std:.1f} bar\n"
-                f"Abs Diff: {abs(pressure_mean - REFERENCE_VALUES['pressure']):.1f} bar"
+                f"Target: {REFERENCE_VALUES['pressure']:.1f} bar\n"
+                f"Deviation: {abs(pressure_mean - REFERENCE_VALUES['pressure']):.1f} bar"
             )
             axs[0, 1].text(0.05, 0.95, stats_text, transform=axs[0, 1].transAxes, 
-                          fontsize=10, verticalalignment='top', 
-                          bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+                          fontsize=11, verticalalignment='top', 
+                          bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'))
             
-            # Add note about pressure fluctuations
+            # Add note about pressure fluctuations with enhanced styling
             note_text = "Note: Large pressure fluctuations\nare normal in MD simulations"
             axs[0, 1].text(0.05, 0.75, note_text, transform=axs[0, 1].transAxes,
-                          fontsize=9, style='italic',
-                          bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.7))
+                          fontsize=10, style='italic',
+                          bbox=dict(boxstyle='round,pad=0.5', facecolor='lightyellow', alpha=0.8, edgecolor='gray'))
             
-            axs[0, 1].set_title('Pressure', fontsize=14)
-            axs[0, 1].set_xlabel('Time (ns)', fontsize=12)
-            axs[0, 1].set_ylabel('Pressure (bar)', fontsize=12)
-            axs[0, 1].grid(True, alpha=0.3)
+            # Mark equilibration region if simulation is long enough
+            if len(x) > 5:
+                equil_time = x[len(x)//5]  # Assume first 20% is equilibration
+                axs[0, 1].axvline(x=equil_time, color='gray', linestyle=':', linewidth=2, alpha=0.7)
+            
+            axs[0, 1].set_title('Pressure', fontsize=16, fontweight='bold')
+            axs[0, 1].set_xlabel('Time (ps)', fontsize=14)
+            axs[0, 1].set_ylabel('Pressure (bar)', fontsize=14)
+            axs[0, 1].tick_params(axis='both', which='major', labelsize=12)
+            axs[0, 1].legend(fontsize=11, framealpha=0.8)
     
-    # Energy subplot
-    energy_file = os.path.join(analysis_dir, 'energy.xvg')
+    # Energy subplot - FIXED to avoid recursion
+    energy_file = os.path.join(data_dir, 'energy.xvg')
     if os.path.exists(energy_file):
-        x, y, _, _, _, legend_labels = read_xvg(energy_file)
+        x, y, title, xlabel, ylabel, legend_labels = read_xvg(energy_file)
+        
         if len(x) > 0 and len(y) > 0 and len(y.shape) > 1:
-            # Plot total energy and potential energy if available
-            for i in range(min(2, y.shape[1])):
-                label = legend_labels[i] if i < len(legend_labels) else f"Series {i+1}"
-                axs[1, 0].plot(x, y[:, i], label=label)
+            # Plot with enhanced styling
+            for i in range(min(3, y.shape[1])):  # Limit to 3 components for clarity
+                label = legend_labels[i] if i < len(legend_labels) else f"Component {i+1}"
+                axs[1, 0].plot(x, y[:, i], label=label, linewidth=2.5)
             
-            axs[1, 0].set_title('Energy Components', fontsize=14)
-            axs[1, 0].set_xlabel('Time (ns)', fontsize=12)
-            axs[1, 0].set_ylabel('Energy (kJ/mol)', fontsize=12)
-            axs[1, 0].grid(True, alpha=0.3)
-            axs[1, 0].legend(fontsize=10)
+            # Calculate statistics for total energy
+            if y.shape[1] > 0:
+                energy_mean = np.mean(y[:, 0])
+                energy_std = np.std(y[:, 0])
+                
+                # Add text with statistics
+                stats_text = (
+                    f"Mean Total: {energy_mean:.1f} kJ/mol\n"
+                    f"Std Dev: {energy_std:.1f} kJ/mol"
+                )
+                axs[1, 0].text(0.05, 0.95, stats_text, transform=axs[1, 0].transAxes, 
+                              fontsize=11, verticalalignment='top', 
+                              bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'))
+            
+            # Mark equilibration region if simulation is long enough
+            if len(x) > 5:
+                equil_time = x[len(x)//5]  # Assume first 20% is equilibration
+                axs[1, 0].axvline(x=equil_time, color='gray', linestyle=':', linewidth=2, alpha=0.7)
+            
+            axs[1, 0].set_title('Energy Components', fontsize=16, fontweight='bold')
+            axs[1, 0].set_xlabel('Time (ps)', fontsize=14)
+            axs[1, 0].set_ylabel('Energy (kJ/mol)', fontsize=14)
+            axs[1, 0].tick_params(axis='both', which='major', labelsize=12)
+            axs[1, 0].legend(fontsize=11, framealpha=0.8, loc='best')
     
-    # Potential energy subplot
-    potential_file = os.path.join(analysis_dir, 'potential.xvg')
+    # Potential energy subplot - FIXED to avoid recursion
+    potential_file = os.path.join(data_dir, 'potential.xvg')
     if os.path.exists(potential_file):
         x, y, _, _, _, _ = read_xvg(potential_file)
         if len(x) > 0 and len(y) > 0:
+            # Plot with enhanced styling
             if HAS_SEABORN:
-                sns.lineplot(x=x, y=y, color='#d62728', ax=axs[1, 1])
+                sns.lineplot(x=x, y=y, color='#d62728', ax=axs[1, 1], linewidth=2.5)
             else:
-                axs[1, 1].plot(x, y, color='#d62728')
+                axs[1, 1].plot(x, y, color='#d62728', linewidth=2.5)
             
             # Calculate statistics
             potential_mean = np.mean(y)
@@ -544,12 +827,12 @@ def create_thermodynamic_properties_plot(analysis_dir, plots_dir):
             # Scale the per-molecule reference to the total system
             total_reference = REFERENCE_VALUES['potential_energy'] * NUM_WATER_MOLECULES
             
-            # Add reference line
+            # Add reference line with enhanced styling
             axs[1, 1].axhline(y=total_reference, color='#7f7f7f', 
-                             linestyle=':', alpha=0.7, 
-                             label=f'Reference (total): {total_reference:.1f} kJ/mol')
+                             linestyle='--', alpha=0.7, linewidth=2,
+                             label=f'Reference: {total_reference:.1f} kJ/mol')
             
-            # Add text with statistics
+            # Add text with statistics and enhanced styling
             stats_text = (
                 f"Mean: {potential_mean:.2f} kJ/mol\n"
                 f"Std Dev: {potential_std:.2f} kJ/mol\n"
@@ -557,19 +840,34 @@ def create_thermodynamic_properties_plot(analysis_dir, plots_dir):
                 f"Reference: {REFERENCE_VALUES['potential_energy']:.1f} kJ/mol per molecule"
             )
             axs[1, 1].text(0.05, 0.95, stats_text, transform=axs[1, 1].transAxes, 
-                          fontsize=10, verticalalignment='top', 
-                          bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+                          fontsize=11, verticalalignment='top', 
+                          bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'))
             
-            axs[1, 1].set_title('Potential Energy', fontsize=14)
-            axs[1, 1].set_xlabel('Time (ns)', fontsize=12)
-            axs[1, 1].set_ylabel('Potential Energy (kJ/mol)', fontsize=12)
-            axs[1, 1].grid(True, alpha=0.3)
-            axs[1, 1].legend(fontsize=10)
+            # Mark equilibration region if simulation is long enough
+            if len(x) > 5:
+                equil_time = x[len(x)//5]  # Assume first 20% is equilibration
+                axs[1, 1].axvline(x=equil_time, color='gray', linestyle=':', linewidth=2, alpha=0.7)
+            
+            axs[1, 1].set_title('Potential Energy', fontsize=16, fontweight='bold')
+            axs[1, 1].set_xlabel('Time (ps)', fontsize=14)
+            axs[1, 1].set_ylabel('Potential Energy (kJ/mol)', fontsize=14)
+            axs[1, 1].tick_params(axis='both', which='major', labelsize=12)
+            axs[1, 1].legend(fontsize=11, framealpha=0.8)
     
-    # Add a title for the entire figure
-    fig.suptitle('Thermodynamic Properties of TIP4P Water', fontsize=16)
+    # Add a title for the entire figure with enhanced styling
+    fig.suptitle('Thermodynamic Properties of TIP4P Water', fontsize=18, fontweight='bold', y=0.98)
     
-    plt.tight_layout(rect=[0, 0, 1, 0.97])  # Adjust for the suptitle
+    # Add a text box with simulation details
+    sim_details = (
+        f"System: TIP4P Water\n"
+        f"Temperature: {REFERENCE_VALUES['temperature']} K\n"
+        f"Pressure: {REFERENCE_VALUES['pressure']} bar\n"
+        f"Molecules: {NUM_WATER_MOLECULES}"
+    )
+    fig.text(0.02, 0.02, sim_details, fontsize=10, 
+             bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'))
+    
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust for the suptitle and footer
     plt.savefig(os.path.join(plots_dir, 'thermodynamic_properties_plot.png'), dpi=300, bbox_inches='tight')
     plt.close()
     print('  - thermodynamic_properties_plot.png saved successfully')
@@ -582,14 +880,17 @@ def main():
     analysis_dir = sys.argv[1]
     plots_dir = sys.argv[2]
     
+    # Define data directory
+    data_dir = os.path.join(analysis_dir, "data")
+    
     # Ensure plots directory exists
     os.makedirs(plots_dir, exist_ok=True)
     
-    # Plot temperature data
-    temp_file = os.path.join(analysis_dir, 'temperature.xvg')
-    if os.path.exists(temp_file):
+    # Temperature plot
+    temperature_file = os.path.join(data_dir, 'temperature.xvg')
+    if os.path.exists(temperature_file):
         print('Plotting temperature data...')
-        x, y, title, xlabel, ylabel, legend_labels = read_xvg(temp_file)
+        x, y, title, xlabel, ylabel, legend_labels = read_xvg(temperature_file)
         
         if len(x) > 0 and len(y) > 0:
             # Use file metadata if available, otherwise use defaults
@@ -601,10 +902,10 @@ def main():
             plot_time_series(x, y, plot_title, plot_xlabel, plot_ylabel, legend_labels, 
                            output_path, REFERENCE_VALUES['temperature'], 'Temperature')
     else:
-        print(f"Temperature file not found: {temp_file}")
+        print(f"Temperature file not found: {temperature_file}")
     
-    # Plot pressure data
-    pressure_file = os.path.join(analysis_dir, 'pressure.xvg')
+    # Pressure plot
+    pressure_file = os.path.join(data_dir, 'pressure.xvg')
     if os.path.exists(pressure_file):
         print('Plotting pressure data...')
         x, y, title, xlabel, ylabel, legend_labels = read_xvg(pressure_file)
@@ -621,8 +922,8 @@ def main():
     else:
         print(f"Pressure file not found: {pressure_file}")
     
-    # Plot energy data
-    energy_file = os.path.join(analysis_dir, 'energy.xvg')
+    # Energy plot
+    energy_file = os.path.join(data_dir, 'energy.xvg')
     if os.path.exists(energy_file):
         print('Plotting energy data...')
         x, y, title, xlabel, ylabel, legend_labels = read_xvg(energy_file)
@@ -643,8 +944,8 @@ def main():
     else:
         print(f"Energy file not found: {energy_file}")
     
-    # Plot potential energy data
-    potential_file = os.path.join(analysis_dir, 'potential.xvg')
+    # Potential energy plot
+    potential_file = os.path.join(data_dir, 'potential.xvg')
     if os.path.exists(potential_file):
         print('Plotting potential energy data...')
         x, y, title, xlabel, ylabel, legend_labels = read_xvg(potential_file)
@@ -661,8 +962,8 @@ def main():
     else:
         print(f"Potential energy file not found: {potential_file}")
     
-    # Plot detailed energy terms
-    energy_terms_file = os.path.join(analysis_dir, 'energy_terms.xvg')
+    # Detailed energy terms
+    energy_terms_file = os.path.join(data_dir, 'energy_terms.xvg')
     if os.path.exists(energy_terms_file):
         print('Plotting detailed energy terms...')
         x, y, title, xlabel, ylabel, legend_labels = read_xvg(energy_terms_file)

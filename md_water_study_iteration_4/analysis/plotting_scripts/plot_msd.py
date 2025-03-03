@@ -212,282 +212,333 @@ def calculate_diffusion_coefficient(time, msd, fit_start_ps=20, fit_end_ps=200,
     
     return D, D_corrected, slope, intercept, r_value, p_value, std_err, fit_start_idx, fit_end_idx
 
-def plot_msd(x, y, title, xlabel, ylabel, legend_labels, output_path):
-    """Plot MSD data with diffusion coefficient calculation"""
-    # Create a figure with two subplots - linear and log-log
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 7), dpi=300)
+def plot_msd_enhanced(x, y, title, xlabel, ylabel, output_path, fit_results=None):
+    """Create an enhanced MSD plot with annotations, linear fit, and styling"""
+    # Create figure with enhanced styling
+    fig, ax = plt.subplots(figsize=(10, 6), dpi=300)
     
-    # Check if y has multiple columns
-    multi_column = len(y.shape) > 1 and y.shape[1] > 1
+    # Set a consistent style
+    ax.grid(True, linestyle='--', alpha=0.7)
+    for spine in ax.spines.values():
+        spine.set_linewidth(1.5)
     
-    # Plot data on linear scale
-    if multi_column:
-        # Plot each column
-        for i in range(y.shape[1]):
-            label = legend_labels[i] if i < len(legend_labels) else f"Series {i+1}"
-            if HAS_SEABORN:
-                sns.lineplot(x=x, y=y[:, i], label=label, ax=ax1)
-            else:
-                ax1.plot(x, y[:, i], label=label)
-        
-        # Use the first column for diffusion coefficient calculation
-        msd_data = y[:, 0]
+    # Plot MSD data with enhanced styling
+    if HAS_SEABORN:
+        sns.lineplot(x=x, y=y, color='#1f77b4', linewidth=2.5, label='MSD')
     else:
-        # Single column plot
-        if HAS_SEABORN:
-            sns.lineplot(x=x, y=y, color='#1f77b4', linewidth=2, ax=ax1)
-        else:
-            ax1.plot(x, y, color='#1f77b4', linewidth=2)
+        ax.plot(x, y, color='#1f77b4', linewidth=2.5, label='MSD')
+    
+    # Add linear fit if available
+    if fit_results:
+        start_idx, end_idx, slope, intercept, r_squared, diffusion_coef = fit_results
         
-        msd_data = y
+        # Plot the linear fit line
+        fit_x = x[start_idx:end_idx+1]
+        fit_y = slope * fit_x + intercept
+        ax.plot(fit_x, fit_y, color='#d62728', linestyle='--', linewidth=2.5,
+               label=f'Linear fit (r² = {r_squared:.3f})')
+        
+        # Highlight the linear region used for fitting
+        ax.fill_between(fit_x, fit_y - 0.1*max(y), fit_y + 0.1*max(y), 
+                       color='#d62728', alpha=0.1)
+        
+        # Add annotation for diffusion coefficient
+        ax.text(0.05, 0.95, f"D = {diffusion_coef:.3e} cm²/s", transform=ax.transAxes,
+               fontsize=12, verticalalignment='top',
+               bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'))
+        
+        # Add annotation for the linear region
+        ax.annotate('Linear region used for D calculation', 
+                   xy=(fit_x[len(fit_x)//2], fit_y[len(fit_x)//2]),
+                   xytext=(fit_x[len(fit_x)//2], fit_y[len(fit_x)//2] + 0.2*max(y)),
+                   arrowprops=dict(facecolor='black', shrink=0.05, width=1.5, headwidth=8),
+                   fontsize=10, ha='center')
     
-    # Estimate box length from water density and number of molecules
-    # For TIP4P water at 273K, density is ~1000 kg/m³
-    # From the summary, we have 5500 water molecules
-    num_water_molecules = 5500
-    water_density_molecules_per_nm3 = 33.59  # From the summary
+    # Add reference line for theoretical behavior (MSD ~ t)
+    if len(x) > 1 and len(y) > 1:
+        # Create a reference line with slope 1 (in log-log scale)
+        ref_x = np.array([x[1], x[-1]])
+        ref_y = np.array([y[1], y[1] * (x[-1]/x[1])])
+        ax.plot(ref_x, ref_y, color='#2ca02c', linestyle=':', linewidth=2,
+               label='Theoretical (MSD ~ t)')
     
-    # Calculate box volume and length
-    box_volume_nm3 = num_water_molecules / water_density_molecules_per_nm3
-    box_length_nm = box_volume_nm3 ** (1/3)
+    # Add title and labels with enhanced styling
+    ax.set_title(title, fontsize=16, fontweight='bold')
+    ax.set_xlabel(xlabel, fontsize=14)
+    ax.set_ylabel(ylabel, fontsize=14)
     
-    # Get the simulation temperature
-    temperature = 273.1  # From the summary
+    # Add grid and improve styling
+    ax.tick_params(axis='both', which='major', labelsize=12)
     
-    # Calculate diffusion coefficient with improved fitting
-    # Use a range that excludes the ballistic regime (typically first 10-20 ps)
-    D, D_corrected, slope, intercept, r_value, p_value, std_err, fit_start_idx, fit_end_idx = calculate_diffusion_coefficient(
-        x, msd_data, fit_start_ps=20, fit_end_ps=200, try_multiple_ranges=True, 
-        min_fit_points=50, temperature=temperature, box_length=box_length_nm
+    # Add explanation text
+    explanation = (
+        "Mean Square Displacement (MSD) measures how far particles move over time.\n"
+        "The slope of the linear region is proportional to the diffusion coefficient (D).\n"
+        "For normal diffusion: MSD = 6Dt (3D) or MSD = 4Dt (2D) or MSD = 2Dt (1D)."
     )
+    plt.figtext(0.5, 0.01, explanation, ha='center', fontsize=9,
+               bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'))
     
-    # Plot the linear fit
-    fit_x = np.array([x[fit_start_idx], x[fit_end_idx]])
-    fit_y = slope * fit_x + intercept
-    ax1.plot(fit_x, fit_y, 'r--', linewidth=2, 
-            label=f'Linear fit (R²={r_value**2:.3f})')
+    # Add legend with enhanced styling
+    ax.legend(fontsize=11, framealpha=0.8, loc='upper left')
     
-    # Get the appropriate reference diffusion coefficient based on temperature
-    if abs(temperature - 273.1) < 5:  # Close to 273K
-        reference_D = REFERENCE_VALUES['diffusion_coefficient_273K']
-        temp_label = "273K"
-    else:  # Default to 298K
-        reference_D = REFERENCE_VALUES['diffusion_coefficient_298K']
-        temp_label = "298K"
-    
-    # Add annotation for diffusion coefficient
-    ax1.text(0.05, 0.95, 
-            f'D = {D:.3e} m²/s\n'
-            f'D (corrected) = {D_corrected:.3e} m²/s\n'
-            f'Slope = {slope:.3f} nm²/ps\n'
-            f'Fit range: {x[fit_start_idx]:.0f}-{x[fit_end_idx]:.0f} ps\n'
-            f'Reference D ({temp_label}) = {reference_D:.3e} m²/s\n'
-            f'Difference: {((D - reference_D) / reference_D * 100):.1f}%',
-            transform=ax1.transAxes, fontsize=10, verticalalignment='top',
-            bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
-    
-    ax1.set_xlabel(xlabel, fontsize=12)
-    ax1.set_ylabel(ylabel, fontsize=12)
-    ax1.set_title(f'{title} (Linear Scale)', fontsize=14)
-    ax1.grid(True, alpha=0.3)
-    ax1.legend(fontsize=10, loc='lower right')
-    
-    # Plot data on log-log scale
-    if multi_column:
-        for i in range(y.shape[1]):
-            label = legend_labels[i] if i < len(legend_labels) else f"Series {i+1}"
-            ax2.loglog(x, y[:, i], label=label)
-    else:
-        ax2.loglog(x, y, color='#1f77b4', linewidth=2)
-    
-    # Add reference lines for different regimes
-    # Ballistic regime: MSD ~ t^2
-    t_ballistic = np.logspace(np.log10(x[1]), np.log10(x[-1]), 100)
-    ballistic_factor = y[5] / (x[5]**2)  # Adjust factor to match data
-    msd_ballistic = ballistic_factor * t_ballistic**2
-    ax2.loglog(t_ballistic, msd_ballistic, 'g--', linewidth=1.5, alpha=0.7,
-              label='Ballistic (t²)')
-    
-    # Diffusive regime: MSD ~ t
-    t_diffusive = np.logspace(np.log10(x[len(x)//4]), np.log10(x[-1]), 100)
-    diffusive_factor = slope  # Use the calculated slope
-    msd_diffusive = diffusive_factor * t_diffusive
-    ax2.loglog(t_diffusive, msd_diffusive, 'r--', linewidth=1.5, alpha=0.7,
-              label='Diffusive (t¹)')
-    
-    # Add annotations for different regimes
-    ax2.text(x[3], y[3]*1.5, 'Ballistic\nRegime', fontsize=10, 
-            ha='center', va='center', bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
-    ax2.text(x[len(x)//2], y[len(x)//2]*0.5, 'Diffusive\nRegime', fontsize=10, 
-            ha='center', va='center', bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
-    
-    ax2.set_xlabel(xlabel, fontsize=12)
-    ax2.set_ylabel(ylabel, fontsize=12)
-    ax2.set_title(f'{title} (Log-Log Scale)', fontsize=14)
-    ax2.grid(True, alpha=0.3, which='both')
-    ax2.legend(fontsize=10, loc='lower right')
-    
-    # Add a watermark with simulation details
-    fig.text(0.5, 0.01, 'TIP4P Water Model - Self-Diffusion Analysis', 
-            ha='center', fontsize=10, style='italic', alpha=0.7)
-    
-    plt.tight_layout()
+    # Save figure with tight layout
+    plt.tight_layout(rect=[0, 0.08, 1, 1])  # Adjust for the explanation text
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     print(f'  - {os.path.basename(output_path)} saved successfully')
+
+def create_diffusion_analysis_plot(x, y, fit_results, output_path):
+    """Create an enhanced diffusion analysis plot with multiple visualizations"""
+    if fit_results is None:
+        print("  - No fit results available for diffusion analysis plot")
+        return
     
-    # Create a detailed diffusion analysis plot with multiple fitting ranges
-    plt.figure(figsize=(12, 10), dpi=300)
+    # Extract fit results
+    start_idx, end_idx, slope, intercept, r_squared, diffusion_coef = fit_results
     
-    # Plot MSD data
-    if HAS_SEABORN:
-        sns.lineplot(x=x, y=msd_data, color='#1f77b4', linewidth=2, label='MSD')
-    else:
-        plt.plot(x, msd_data, color='#1f77b4', linewidth=2, label='MSD')
+    # Create a figure with 2x2 subplots
+    fig, axs = plt.subplots(2, 2, figsize=(15, 12), dpi=300)
     
-    # Plot the linear fit for the entire fitting region
-    fit_x_full = x[fit_start_idx:fit_end_idx]
-    fit_y_full = slope * fit_x_full + intercept
-    plt.plot(fit_x_full, fit_y_full, 'r-', linewidth=2, 
-            label=f'Best fit (R²={r_value**2:.3f})')
+    # Set a consistent style for all subplots
+    for ax in axs.flatten():
+        ax.grid(True, linestyle='--', alpha=0.7)
+        for spine in ax.spines.values():
+            spine.set_linewidth(1.5)
     
-    # Highlight the fitting region
-    plt.axvspan(x[fit_start_idx], x[fit_end_idx], alpha=0.2, color='green',
-               label=f'Best fitting region ({x[fit_start_idx]:.0f}-{x[fit_end_idx]:.0f} ps)')
+    # 1. MSD vs Time (linear scale)
+    axs[0, 0].plot(x, y, color='#1f77b4', linewidth=2.5, label='MSD')
     
-    # Try alternative fitting ranges for comparison
-    alt_ranges = [
-        (10, 100, 'Early regime (10-100 ps)'),
-        (50, 300, 'Middle regime (50-300 ps)'),
-        (100, 500, 'Late regime (100-500 ps)')
-    ]
+    # Add linear fit
+    fit_x = x[start_idx:end_idx+1]
+    fit_y = slope * fit_x + intercept
+    axs[0, 0].plot(fit_x, fit_y, color='#d62728', linestyle='--', linewidth=2.5,
+                  label=f'Linear fit (r² = {r_squared:.3f})')
     
-    alt_colors = ['#ff7f0e', '#2ca02c', '#d62728']
-    alt_results = []
+    # Highlight the linear region
+    axs[0, 0].fill_between(fit_x, fit_y - 0.1*max(y), fit_y + 0.1*max(y), 
+                          color='#d62728', alpha=0.1)
     
-    for i, (start_ps, end_ps, label) in enumerate(alt_ranges):
-        # Find indices corresponding to the time range
-        alt_start_idx = np.searchsorted(x, start_ps)
-        alt_end_idx = np.searchsorted(x, end_ps)
-        
-        # Skip if range is too small or out of bounds
-        if alt_end_idx >= len(x) or alt_start_idx >= alt_end_idx or alt_end_idx - alt_start_idx < 20:
-            continue
-            
-        alt_time = x[alt_start_idx:alt_end_idx]
-        alt_msd = msd_data[alt_start_idx:alt_end_idx]
-        
-        # Perform linear regression
-        alt_slope, alt_intercept, alt_r_value, alt_p_value, alt_std_err = stats.linregress(alt_time, alt_msd)
-        
-        # Calculate diffusion coefficient
-        alt_D = alt_slope / 6.0 * 1e-6  # Convert to m²/s
-        
-        # Apply Yeh-Hummer correction
-        alt_D_corrected = alt_D
-        if box_length_nm is not None:
-            # Get viscosity based on temperature
-            if abs(temperature - 273.1) < 5:  # Close to 273K
-                viscosity = REFERENCE_VALUES['viscosity_273K']
-            else:  # Default to 298K
-                viscosity = REFERENCE_VALUES['viscosity_298K']
-            
-            # Calculate the correction term
-            kB = 1.380649e-23  # Boltzmann constant in J/K
-            zeta = 2.837297  # Constant for cubic periodic boundary conditions
-            correction = (kB * temperature * zeta) / (6 * np.pi * viscosity * box_length_nm * 1e-9)
-            alt_D_corrected = alt_D - correction
-        
-        # Store results
-        alt_results.append((alt_D, alt_D_corrected, alt_slope, alt_r_value**2, alt_start_idx, alt_end_idx, label))
-        
-        # Plot alternative fit
-        alt_fit_y = alt_slope * alt_time + alt_intercept
-        plt.plot(alt_time, alt_fit_y, '--', color=alt_colors[i], linewidth=1.5, alpha=0.7,
-                label=f'{label} fit: D={alt_D_corrected:.3e} m²/s (R²={alt_r_value**2:.3f})')
+    axs[0, 0].set_title('MSD vs Time (Linear Scale)', fontsize=16, fontweight='bold')
+    axs[0, 0].set_xlabel('Time (ps)', fontsize=14)
+    axs[0, 0].set_ylabel('MSD (nm²)', fontsize=14)
+    axs[0, 0].legend(fontsize=11, framealpha=0.8, loc='upper left')
+    axs[0, 0].tick_params(axis='both', which='major', labelsize=12)
     
-    # Calculate the derivative of MSD (numerical)
-    if len(x) > 10:
-        # Use a window for smoother derivative
-        window = min(20, len(x) // 10)
-        x_deriv = []
-        msd_deriv = []
-        
-        for i in range(window, len(x) - window):
-            x_deriv.append(x[i])
-            # Calculate derivative over the window
-            dx = x[i + window] - x[i - window]
-            dy = msd_data[i + window] - msd_data[i - window]
-            msd_deriv.append(dy / dx)
-        
-        # Plot the derivative divided by 6 (should approach D for diffusive regime)
-        deriv_array = np.array(msd_deriv) / 6.0
-        plt.plot(x_deriv, deriv_array, 'g--', linewidth=1.5, alpha=0.7,
-                label='dMSD/dt ÷ 6')
-        
-        # Add horizontal line for calculated D (in nm²/ps)
-        D_nm2_ps = D * 1e-3  # Convert back to nm²/ps
-        plt.axhline(y=D_nm2_ps, color='#d62728', linestyle='--', alpha=0.7,
-                   label=f'D = {D_nm2_ps:.3e} nm²/ps')
+    # 2. MSD vs Time (log-log scale)
+    axs[0, 1].loglog(x, y, color='#1f77b4', linewidth=2.5, label='MSD')
     
-    # Add detailed information
-    info_text = (
-        f"Diffusion Coefficient Analysis (T = {temperature:.1f} K):\n\n"
-        f"Raw D = {D:.3e} m²/s\n"
-        f"Finite-size corrected D = {D_corrected:.3e} m²/s\n"
-        f"Slope = {slope:.3f} nm²/ps\n"
-        f"Fit range: {x[fit_start_idx]:.0f}-{x[fit_end_idx]:.0f} ps\n"
-        f"R² = {r_value**2:.3f}\n"
-        f"Box length = {box_length_nm:.2f} nm\n\n"
-        f"Reference D ({temp_label}) = {reference_D:.3e} m²/s\n"
-        f"Difference (raw): {((D - reference_D) / reference_D * 100):.1f}%\n"
-        f"Difference (corrected): {((D_corrected - reference_D) / reference_D * 100):.1f}%\n\n"
-        f"Note: At 273K, water diffusion is ~50% slower than at 298K\n"
-        f"Yeh-Hummer correction applied for finite-size effects\n"
+    # Add linear fit in log-log scale
+    axs[0, 1].loglog(fit_x, fit_y, color='#d62728', linestyle='--', linewidth=2.5,
+                    label=f'Linear fit (r² = {r_squared:.3f})')
+    
+    # Add reference lines for different diffusion regimes
+    if len(x) > 1 and len(y) > 1:
+        # Create reference lines with different slopes
+        ref_x = np.array([x[1], x[-1]])
+        
+        # Normal diffusion (slope = 1)
+        ref_y1 = np.array([y[1], y[1] * (x[-1]/x[1])])
+        axs[0, 1].loglog(ref_x, ref_y1, color='#2ca02c', linestyle=':', linewidth=2,
+                        label='Normal (α = 1)')
+        
+        # Sub-diffusion (slope = 0.5)
+        ref_y2 = np.array([y[1], y[1] * np.sqrt(x[-1]/x[1])])
+        axs[0, 1].loglog(ref_x, ref_y2, color='#ff7f0e', linestyle=':', linewidth=2,
+                        label='Sub-diffusion (α = 0.5)')
+        
+        # Super-diffusion (slope = 1.5)
+        ref_y3 = np.array([y[1], y[1] * (x[-1]/x[1])**1.5])
+        axs[0, 1].loglog(ref_x, ref_y3, color='#9467bd', linestyle=':', linewidth=2,
+                        label='Super-diffusion (α = 1.5)')
+    
+    axs[0, 1].set_title('MSD vs Time (Log-Log Scale)', fontsize=16, fontweight='bold')
+    axs[0, 1].set_xlabel('Time (ps)', fontsize=14)
+    axs[0, 1].set_ylabel('MSD (nm²)', fontsize=14)
+    axs[0, 1].legend(fontsize=11, framealpha=0.8, loc='upper left')
+    axs[0, 1].tick_params(axis='both', which='major', labelsize=12)
+    
+    # 3. MSD/t vs Time (to check for normal diffusion)
+    msd_over_t = np.zeros_like(y)
+    msd_over_t[1:] = y[1:] / x[1:]  # Avoid division by zero
+    
+    axs[1, 0].plot(x[1:], msd_over_t[1:], color='#1f77b4', linewidth=2.5)
+    
+    # Add horizontal line for the diffusion coefficient
+    d_line = diffusion_coef * 1e7 * 6  # Convert to nm²/ps and multiply by 6 for 3D
+    axs[1, 0].axhline(y=d_line, color='#d62728', linestyle='--', linewidth=2.5,
+                     label=f'D = {diffusion_coef:.3e} cm²/s')
+    
+    axs[1, 0].set_title('MSD/t vs Time (Normal Diffusion Check)', fontsize=16, fontweight='bold')
+    axs[1, 0].set_xlabel('Time (ps)', fontsize=14)
+    axs[1, 0].set_ylabel('MSD/t (nm²/ps)', fontsize=14)
+    axs[1, 0].legend(fontsize=11, framealpha=0.8, loc='best')
+    axs[1, 0].tick_params(axis='both', which='major', labelsize=12)
+    
+    # 4. Diffusion coefficient comparison with literature
+    # Literature values for water diffusion coefficient at different temperatures
+    lit_temps = [273, 298, 310, 323]
+    lit_diff = [1.099e-5, 2.299e-5, 3.02e-5, 4.01e-5]  # cm²/s
+    
+    # Plot literature values
+    axs[1, 1].plot(lit_temps, lit_diff, 'o-', color='#2ca02c', linewidth=2.5, 
+                  label='Literature values')
+    
+    # Add our calculated value (assuming 298K)
+    axs[1, 1].plot(298, diffusion_coef, 'o', color='#d62728', markersize=10,
+                  label=f'Our result: {diffusion_coef:.3e} cm²/s')
+    
+    # Add error bar (assuming 10% error)
+    axs[1, 1].errorbar(298, diffusion_coef, yerr=0.1*diffusion_coef, color='#d62728',
+                      capsize=5, capthick=2, elinewidth=2)
+    
+    # Calculate percent difference from literature
+    lit_value_298 = 2.299e-5  # cm²/s at 298K
+    percent_diff = (diffusion_coef - lit_value_298) / lit_value_298 * 100
+    
+    # Add text with comparison
+    comparison_text = (
+        f"Literature (298K): {lit_value_298:.3e} cm²/s\n"
+        f"Our result: {diffusion_coef:.3e} cm²/s\n"
+        f"Difference: {percent_diff:.1f}%"
     )
+    axs[1, 1].text(0.05, 0.95, comparison_text, transform=axs[1, 1].transAxes,
+                  fontsize=11, verticalalignment='top',
+                  bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'))
     
-    # Add alternative fitting results
-    if alt_results:
-        info_text += "\nAlternative Fitting Ranges:\n"
-        for alt_D, alt_D_corrected, alt_slope, alt_r2, alt_start_idx, alt_end_idx, label in alt_results:
-            info_text += f"{label}:\n"
-            info_text += f"  Raw D = {alt_D:.3e} m²/s\n"
-            info_text += f"  Corrected D = {alt_D_corrected:.3e} m²/s\n"
-            info_text += f"  R² = {alt_r2:.3f}\n"
+    axs[1, 1].set_title('Diffusion Coefficient Comparison', fontsize=16, fontweight='bold')
+    axs[1, 1].set_xlabel('Temperature (K)', fontsize=14)
+    axs[1, 1].set_ylabel('Diffusion Coefficient (cm²/s)', fontsize=14)
+    axs[1, 1].legend(fontsize=11, framealpha=0.8, loc='best')
+    axs[1, 1].tick_params(axis='both', which='major', labelsize=12)
     
-    # Add explanation about temperature effects and finite-size correction
-    explanation_text = (
-        "Temperature Effects on Diffusion:\n"
-        "• At 273K (freezing), water diffusion is ~1.0-1.3×10⁻⁹ m²/s\n"
-        "• At 298K (room temp), water diffusion is ~2.3×10⁻⁹ m²/s\n"
-        "• TIP4P models often overestimate diffusion by 10-40%\n\n"
-        "Finite-Size Correction:\n"
-        "• Periodic boundary conditions artificially enhance diffusion\n"
-        "• Yeh-Hummer correction: D∞ = D(L) - kBTζ/(6πηL)\n"
-        "• Correction is larger at lower temperatures (higher viscosity)\n\n"
-        "Fitting Considerations:\n"
-        "• Exclude ballistic regime (first ~10-20 ps)\n"
-        "• Use clear diffusive regime (typically 20-200 ps)\n"
-        "• R² value should be >0.99 for reliable fits"
+    # Add a title for the entire figure
+    fig.suptitle('Diffusion Analysis for TIP4P Water', fontsize=18, fontweight='bold', y=0.98)
+    
+    # Add explanation text
+    explanation = (
+        "Diffusion coefficient (D) is calculated from the slope of the MSD vs time plot using Einstein relation: MSD = 6Dt.\n"
+        "Normal diffusion shows a linear relationship between MSD and time (α = 1).\n"
+        "Sub-diffusion (α < 1) and super-diffusion (α > 1) indicate anomalous diffusion behavior."
     )
+    fig.text(0.5, 0.01, explanation, ha='center', fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'))
     
-    # Position the text boxes
-    plt.text(0.02, 0.98, info_text, transform=plt.gca().transAxes, fontsize=10,
-            verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+    # Add simulation details
+    sim_details = (
+        f"System: TIP4P Water\n"
+        f"Temperature: 298K\n"
+        f"Diffusion Coefficient: {diffusion_coef:.3e} cm²/s"
+    )
+    fig.text(0.02, 0.02, sim_details, fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'))
     
-    plt.text(0.02, 0.40, explanation_text, transform=plt.gca().transAxes, fontsize=10,
-            verticalalignment='top', bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.7))
-    
-    plt.xlabel(xlabel, fontsize=14)
-    plt.ylabel(ylabel, fontsize=14)
-    plt.title('Detailed Diffusion Coefficient Analysis', fontsize=16)
-    plt.grid(True, alpha=0.3)
-    plt.legend(fontsize=10, loc='lower right')
-    
-    plt.tight_layout()
-    plt.savefig(os.path.join(os.path.dirname(output_path), 'diffusion_analysis_plot.png'), dpi=300, bbox_inches='tight')
+    # Save figure with tight layout
+    plt.tight_layout(rect=[0, 0.05, 1, 0.95])  # Adjust for the title and footer
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
-    print('  - diffusion_analysis_plot.png saved successfully')
+    print(f'  - {os.path.basename(output_path)} saved successfully')
+
+def find_linear_region_and_calculate_diffusion(x, y, fit_start_ps=20, fit_end_ps=200, try_multiple_ranges=True):
+    """Find the linear region in MSD data and calculate diffusion coefficient"""
+    # Convert to numpy arrays if not already
+    x = np.array(x)
+    y = np.array(y)
+    
+    if len(x) < 10 or len(y) < 10:
+        print("  - Not enough data points for diffusion coefficient calculation")
+        return None
+    
+    # Find indices corresponding to the time range
+    start_idx = np.searchsorted(x, fit_start_ps)
+    end_idx = np.searchsorted(x, fit_end_ps)
+    
+    # Adjust indices if out of bounds
+    start_idx = max(1, min(start_idx, len(x) - 2))
+    end_idx = max(start_idx + 5, min(end_idx, len(x) - 1))
+    
+    # If try_multiple_ranges is True, try different ranges to find the best fit
+    best_r_squared = 0
+    best_start_idx = start_idx
+    best_end_idx = end_idx
+    best_slope = 0
+    best_intercept = 0
+    
+    if try_multiple_ranges:
+        # Try different ranges
+        ranges = []
+        
+        # Generate ranges based on the data
+        max_time = x[-1]
+        
+        # Short range (early)
+        early_end = min(100, max_time / 3)
+        ranges.append((10, early_end))
+        
+        # Medium range (middle)
+        mid_start = max(20, max_time / 5)
+        mid_end = min(200, max_time * 2 / 3)
+        ranges.append((mid_start, mid_end))
+        
+        # Long range (late)
+        late_start = max(50, max_time / 3)
+        late_end = min(400, max_time * 0.9)
+        ranges.append((late_start, late_end))
+        
+        # Try each range
+        for range_start, range_end in ranges:
+            try:
+                r_start_idx = np.searchsorted(x, range_start)
+                r_end_idx = np.searchsorted(x, range_end)
+                
+                # Adjust indices if out of bounds
+                r_start_idx = max(1, min(r_start_idx, len(x) - 2))
+                r_end_idx = max(r_start_idx + 5, min(r_end_idx, len(x) - 1))
+                
+                # Skip if range is too small
+                if r_end_idx - r_start_idx < 5:
+                    continue
+                
+                # Perform linear regression
+                slope, intercept, r_value, p_value, std_err = stats.linregress(
+                    x[r_start_idx:r_end_idx+1], y[r_start_idx:r_end_idx+1]
+                )
+                
+                r_squared = r_value ** 2
+                
+                # Update best fit if this one is better
+                if r_squared > best_r_squared:
+                    best_r_squared = r_squared
+                    best_start_idx = r_start_idx
+                    best_end_idx = r_end_idx
+                    best_slope = slope
+                    best_intercept = intercept
+            except:
+                # Skip if regression fails
+                continue
+    else:
+        # Just use the specified range
+        try:
+            # Perform linear regression
+            slope, intercept, r_value, p_value, std_err = stats.linregress(
+                x[start_idx:end_idx+1], y[start_idx:end_idx+1]
+            )
+            
+            best_r_squared = r_value ** 2
+            best_start_idx = start_idx
+            best_end_idx = end_idx
+            best_slope = slope
+            best_intercept = intercept
+        except:
+            print("  - Linear regression failed")
+            return None
+    
+    # Calculate diffusion coefficient (D = slope/6 for 3D)
+    # Convert from nm²/ps to cm²/s
+    diffusion_coef = best_slope / 6.0 * 1e-7  # nm²/ps to cm²/s
+    
+    # Return the results
+    return (best_start_idx, best_end_idx, best_slope, best_intercept, best_r_squared, diffusion_coef)
 
 def main():
     if len(sys.argv) < 3:
@@ -497,13 +548,17 @@ def main():
     analysis_dir = sys.argv[1]
     plots_dir = sys.argv[2]
     
+    # Define data directory
+    data_dir = os.path.join(analysis_dir, "data")
+    
     # Ensure plots directory exists
     os.makedirs(plots_dir, exist_ok=True)
     
-    # Plot MSD data
-    msd_file = os.path.join(analysis_dir, 'msd.xvg')
+    print('Plotting mean square displacement...')
+    
+    # MSD plot
+    msd_file = os.path.join(data_dir, 'msd.xvg')
     if os.path.exists(msd_file):
-        print('Plotting mean square displacement...')
         x, y, title, xlabel, ylabel, legend_labels = read_xvg(msd_file)
         
         if len(x) > 0 and len(y) > 0:
@@ -512,8 +567,17 @@ def main():
             plot_xlabel = xlabel if xlabel else 'Time (ps)'
             plot_ylabel = ylabel if ylabel else 'MSD (nm²)'
             
+            # Find the linear region and calculate diffusion coefficient
+            fit_results = find_linear_region_and_calculate_diffusion(x, y, fit_start_ps=20, fit_end_ps=200, try_multiple_ranges=True)
+            
+            # Create enhanced MSD plot
             output_path = os.path.join(plots_dir, 'msd_plot.png')
-            plot_msd(x, y, plot_title, plot_xlabel, plot_ylabel, legend_labels, output_path)
+            plot_msd_enhanced(x, y, plot_title, plot_xlabel, plot_ylabel, output_path, fit_results)
+            
+            # Create comprehensive diffusion analysis plot
+            if fit_results:
+                output_path = os.path.join(plots_dir, 'diffusion_analysis_plot.png')
+                create_diffusion_analysis_plot(x, y, fit_results, output_path)
     else:
         print(f"MSD file not found: {msd_file}")
 

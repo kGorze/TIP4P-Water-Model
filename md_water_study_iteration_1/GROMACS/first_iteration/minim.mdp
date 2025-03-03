@@ -1,0 +1,12 @@
+; minim.mdp - Energy Minimization Parameters
+integrator   = steep       ; Steepest descent
+emtol        = 100.0       ; Converge until max force < 100.0 kJ/mol/nm
+emstep       = 0.01        ; Initial step size
+nsteps       = 50000       ; Maximum number of steps
+
+cutoff-scheme = Verlet
+vdwtype       = cutoff
+rvdw          = 1.0
+rcoulomb      = 1.0
+pbc           = xyz
+

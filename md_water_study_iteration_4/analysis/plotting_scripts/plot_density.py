@@ -159,178 +159,168 @@ def read_xpm(filename):
         print(f"Error reading XPM file {filename}: {e}")
         return None, None, None, None
 
-def plot_density_profile(x, y, title, xlabel, ylabel, legend_labels, output_path):
-    """Plot density profile with statistics and annotations"""
-    plt.figure(figsize=(12, 8), dpi=300)
+def plot_density_histogram(density_data, output_path):
+    """Create an enhanced density histogram plot with annotations and styling"""
+    # Extract data
+    x, y = density_data
     
-    # Check if y has multiple columns
-    multi_column = len(y.shape) > 1 and y.shape[1] > 1
-    
-    if multi_column:
-        # Plot each column
-        for i in range(y.shape[1]):
-            label = legend_labels[i] if i < len(legend_labels) else f"Series {i+1}"
-            if HAS_SEABORN:
-                sns.lineplot(x=x, y=y[:, i], label=label)
-            else:
-                plt.plot(x, y[:, i], label=label)
-        
-        # Use the first column for statistics
-        density_data = y[:, 0]
-    else:
-        # Single column plot
-        if HAS_SEABORN:
-            sns.lineplot(x=x, y=y, color='#1f77b4', linewidth=2)
-        else:
-            plt.plot(x, y, color='#1f77b4', linewidth=2)
-        
-        density_data = y
+    # Create figure with enhanced styling
+    plt.figure(figsize=(10, 6), dpi=300)
     
     # Calculate statistics
-    mean_density = np.mean(density_data)
-    std_density = np.std(density_data)
-    max_density = np.max(density_data)
-    min_density = np.min(density_data)
+    mean_density = np.mean(y)
+    std_density = np.std(y)
     
-    # Add horizontal line for mean density
-    plt.axhline(y=mean_density, color='#2ca02c', linestyle='--', alpha=0.7,
-               label=f'Mean: {mean_density:.1f} kg/m³')
+    # Determine optimal bin size using Freedman-Diaconis rule
+    # This rule is better than Sturges' rule for non-normal distributions
+    q75, q25 = np.percentile(y, [75, 25])
+    iqr = q75 - q25
+    bin_width = 2 * iqr / (len(y) ** (1/3))
+    if bin_width > 0:
+        num_bins = int(np.ceil((max(y) - min(y)) / bin_width))
+        num_bins = min(max(10, num_bins), 50)  # Keep bins between 10 and 50
+    else:
+        num_bins = 20  # Default if calculation fails
     
-    # Add reference value
-    plt.axhline(y=REFERENCE_VALUES['density'], color='#d62728', linestyle=':', alpha=0.7,
-               label=f'Reference: {REFERENCE_VALUES["density"]:.1f} kg/m³')
+    # Plot histogram with enhanced styling
+    n, bins, patches = plt.hist(y, bins=num_bins, alpha=0.7, color='#1f77b4', 
+                               edgecolor='black', linewidth=1.2)
     
-    # Add shaded area for standard deviation
-    plt.fill_between(x, mean_density - std_density, mean_density + std_density,
-                   color='#2ca02c', alpha=0.2, label=f'Std Dev: ±{std_density:.1f} kg/m³')
+    # Add reference line for mean density
+    plt.axvline(x=mean_density, color='#d62728', linestyle='--', linewidth=2, 
+               label=f'Mean: {mean_density:.2f} kg/m³')
     
-    # Add annotations for fluctuations
-    fluctuation_percent = (std_density / mean_density) * 100
-    plt.annotate(f'Fluctuation: {fluctuation_percent:.1f}%',
-                xy=(x[len(x)//2], mean_density + std_density),
-                xytext=(x[len(x)//2], mean_density + 2*std_density),
-                arrowprops=dict(facecolor='black', shrink=0.05, width=1, headwidth=5),
-                fontsize=10, ha='center')
+    # Add reference lines for standard deviation
+    plt.axvline(x=mean_density + std_density, color='#2ca02c', linestyle=':', linewidth=1.5,
+               label=f'±1σ: {std_density:.2f} kg/m³')
+    plt.axvline(x=mean_density - std_density, color='#2ca02c', linestyle=':', linewidth=1.5)
     
-    # Add a text box with statistics
+    # Add reference for experimental density of water at 298K (if applicable)
+    exp_density = 997.0  # kg/m³
+    plt.axvline(x=exp_density, color='#ff7f0e', linestyle='-', linewidth=1.5,
+               label=f'Exp. (298K): {exp_density:.1f} kg/m³')
+    
+    # Add title and labels with enhanced styling
+    plt.title('Density Distribution of TIP4P Water', fontsize=16, fontweight='bold')
+    plt.xlabel('Density (kg/m³)', fontsize=14)
+    plt.ylabel('Frequency', fontsize=14)
+    
+    # Add grid and improve styling
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.tick_params(axis='both', which='major', labelsize=12)
+    
+    # Add statistics text box
     stats_text = (
-        f"Mean Density: {mean_density:.1f} kg/m³\n"
-        f"Std Dev: {std_density:.1f} kg/m³\n"
-        f"Min: {min_density:.1f} kg/m³\n"
-        f"Max: {max_density:.1f} kg/m³\n"
-        f"Fluctuation: {fluctuation_percent:.1f}%\n"
-        f"Reference: {REFERENCE_VALUES['density']:.1f} kg/m³\n"
-        f"Difference: {((mean_density - REFERENCE_VALUES['density']) / REFERENCE_VALUES['density'] * 100):.1f}%"
+        f"Mean: {mean_density:.2f} kg/m³\n"
+        f"Std Dev: {std_density:.2f} kg/m³\n"
+        f"Min: {min(y):.2f} kg/m³\n"
+        f"Max: {max(y):.2f} kg/m³\n"
+        f"Samples: {len(y)}"
     )
+    plt.text(0.05, 0.95, stats_text, transform=plt.gca().transAxes, fontsize=11,
+            verticalalignment='top', bbox=dict(boxstyle='round,pad=0.5', 
+                                             facecolor='white', alpha=0.8, edgecolor='gray'))
     
-    # Add text box
-    props = dict(boxstyle='round', facecolor='white', alpha=0.7)
-    plt.text(0.02, 0.98, stats_text, transform=plt.gca().transAxes, fontsize=10,
-            verticalalignment='top', bbox=props)
+    # Add legend with enhanced styling
+    plt.legend(fontsize=11, framealpha=0.8, loc='upper right')
     
-    plt.xlabel(xlabel, fontsize=14)
-    plt.ylabel(ylabel, fontsize=14)
-    plt.title(title, fontsize=16)
-    plt.grid(True, alpha=0.3)
-    plt.legend(fontsize=10, loc='best')
-    
-    # Add a watermark with simulation details
-    plt.figtext(0.5, 0.01, 'TIP4P Water Model - Density Analysis', 
-               ha='center', fontsize=10, style='italic', alpha=0.7)
-    
+    # Save figure with tight layout
     plt.tight_layout()
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     print(f'  - {os.path.basename(output_path)} saved successfully')
-    
-    # Create a histogram of density values
+
+def plot_density_profile(x, y, title, xlabel, ylabel, output_path):
+    """Create an enhanced density profile plot with annotations and styling"""
+    # Create figure with enhanced styling
     plt.figure(figsize=(10, 6), dpi=300)
     
+    # Plot density profile with enhanced styling
     if HAS_SEABORN:
-        sns.histplot(density_data, kde=True, color='#1f77b4')
-        
-        # Add vertical lines for statistics
-        plt.axvline(x=mean_density, color='#2ca02c', linestyle='--', 
-                   label=f'Mean: {mean_density:.1f} kg/m³')
-        plt.axvline(x=REFERENCE_VALUES['density'], color='#d62728', linestyle=':', 
-                   label=f'Reference: {REFERENCE_VALUES["density"]:.1f} kg/m³')
+        sns.lineplot(x=x, y=y, color='#1f77b4', linewidth=2.5)
     else:
-        plt.hist(density_data, bins=30, alpha=0.7, color='#1f77b4', density=True)
+        plt.plot(x, y, color='#1f77b4', linewidth=2.5)
+    
+    # Calculate statistics
+    mean_density = np.mean(y)
+    std_density = np.std(y)
+    
+    # Add reference line for mean density
+    plt.axhline(y=mean_density, color='#d62728', linestyle='--', linewidth=2, 
+               label=f'Mean: {mean_density:.2f} kg/m³')
+    
+    # Add reference for experimental density of water at 298K (if applicable)
+    exp_density = 997.0  # kg/m³
+    plt.axhline(y=exp_density, color='#ff7f0e', linestyle='-', linewidth=1.5,
+               label=f'Exp. (298K): {exp_density:.1f} kg/m³')
+    
+    # Add shaded region for standard deviation
+    plt.fill_between(x, mean_density - std_density, mean_density + std_density, 
+                    color='#2ca02c', alpha=0.2, label=f'±1σ: {std_density:.2f} kg/m³')
+    
+    # Identify regions of interest (e.g., bulk regions, interfaces)
+    # This is a simple example - for a real system, you might need more sophisticated detection
+    try:
+        # Find regions where density is significantly different from the mean
+        threshold = 0.8 * mean_density
+        regions = []
+        in_region = False
+        start_idx = 0
         
-        # Add a simple KDE if seaborn is not available
-        from scipy.stats import gaussian_kde
-        kde = gaussian_kde(density_data)
-        x_kde = np.linspace(min(density_data), max(density_data), 100)
-        plt.plot(x_kde, kde(x_kde), 'r-', linewidth=2)
+        for i, val in enumerate(y):
+            if val < threshold and not in_region:
+                in_region = True
+                start_idx = i
+            elif val >= threshold and in_region:
+                in_region = False
+                regions.append((start_idx, i))
         
-        # Add vertical lines for statistics
-        plt.axvline(x=mean_density, color='#2ca02c', linestyle='--', 
-                   label=f'Mean: {mean_density:.1f} kg/m³')
-        plt.axvline(x=REFERENCE_VALUES['density'], color='#d62728', linestyle=':', 
-                   label=f'Reference: {REFERENCE_VALUES["density"]:.1f} kg/m³')
+        # Add annotations for identified regions
+        for i, (start, end) in enumerate(regions):
+            mid = (start + end) // 2
+            if mid < len(x):
+                plt.axvspan(x[start], x[end], alpha=0.2, color='gray')
+                plt.text(x[mid], min(y) + 0.1 * (max(y) - min(y)), 
+                        f'Region {i+1}', ha='center', fontsize=10,
+                        bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.7))
+    except:
+        # If region detection fails, continue without annotations
+        pass
     
-    plt.xlabel('Density (kg/m³)', fontsize=14)
-    plt.ylabel('Frequency', fontsize=14)
-    plt.title('Distribution of Density Values', fontsize=16)
-    plt.grid(True, alpha=0.3)
-    plt.legend(fontsize=10)
+    # Add title and labels with enhanced styling
+    plt.title(title, fontsize=16, fontweight='bold')
+    plt.xlabel(xlabel, fontsize=14)
+    plt.ylabel(ylabel, fontsize=14)
     
-    hist_output_path = os.path.join(os.path.dirname(output_path), 'density_histogram.png')
-    plt.tight_layout()
-    plt.savefig(hist_output_path, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f'  - density_histogram.png saved successfully')
-
-def plot_radial_density_map(x, y, data, color_values, output_path):
-    """Plot radial density map as a heatmap"""
-    if data is None or x is None or y is None:
-        print("  - Not enough data for radial density map")
-        return
+    # Add grid and improve styling
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.tick_params(axis='both', which='major', labelsize=12)
     
-    plt.figure(figsize=(10, 8), dpi=300)
+    # Add statistics text box
+    stats_text = (
+        f"Mean: {mean_density:.2f} kg/m³\n"
+        f"Std Dev: {std_density:.2f} kg/m³\n"
+        f"Min: {min(y):.2f} kg/m³\n"
+        f"Max: {max(y):.2f} kg/m³"
+    )
+    plt.text(0.05, 0.95, stats_text, transform=plt.gca().transAxes, fontsize=11,
+            verticalalignment='top', bbox=dict(boxstyle='round,pad=0.5', 
+                                             facecolor='white', alpha=0.8, edgecolor='gray'))
     
-    # Create a heatmap
-    if HAS_SEABORN:
-        # Use seaborn's heatmap for better visualization
-        ax = sns.heatmap(data, cmap='viridis', xticklabels=False, yticklabels=False)
-        
-        # Add colorbar with proper label
-        cbar = ax.collections[0].colorbar
-        cbar.set_label('Density (kg/m³)', fontsize=12)
-    else:
-        # Use matplotlib's imshow
-        plt.imshow(data, cmap='viridis', origin='lower', aspect='equal')
-        
-        # Add colorbar
-        cbar = plt.colorbar()
-        cbar.set_label('Density (kg/m³)', fontsize=12)
+    # Add explanation text
+    explanation = (
+        "The density profile shows how density varies across the simulation box.\n"
+        "Uniform density indicates a homogeneous system (bulk liquid).\n"
+        "Variations may indicate interfaces or structural features."
+    )
+    plt.figtext(0.5, 0.01, explanation, ha='center', fontsize=9,
+               bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'))
     
-    # Add axes labels and title
-    plt.xlabel('X (nm)', fontsize=14)
-    plt.ylabel('Y (nm)', fontsize=14)
-    plt.title('Radial Density Map', fontsize=16)
+    # Add legend with enhanced styling
+    plt.legend(fontsize=11, framealpha=0.8, loc='upper right')
     
-    # Add a circle to indicate the center
-    center_x = len(x) // 2
-    center_y = len(y) // 2
-    circle = plt.Circle((center_x, center_y), 5, color='red', fill=False, linewidth=2)
-    plt.gca().add_patch(circle)
-    
-    # Add annotations for density regions
-    if color_values:
-        max_density = max(color_values)
-        min_density = min(color_values)
-        
-        # Add text with density range
-        plt.text(0.02, 0.98, f"Density Range:\n{min_density:.1f} - {max_density:.1f} kg/m³",
-                transform=plt.gca().transAxes, fontsize=10, verticalalignment='top',
-                bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
-    
-    # Add a watermark with simulation details
-    plt.figtext(0.5, 0.01, 'TIP4P Water Model - Radial Density Analysis', 
-               ha='center', fontsize=10, style='italic', alpha=0.7)
-    
-    plt.tight_layout()
+    # Save figure with tight layout
+    plt.tight_layout(rect=[0, 0.08, 1, 1])  # Adjust for the explanation text
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
     print(f'  - {os.path.basename(output_path)} saved successfully')
@@ -343,13 +333,17 @@ def main():
     analysis_dir = sys.argv[1]
     plots_dir = sys.argv[2]
     
+    # Define data directory
+    data_dir = os.path.join(analysis_dir, "data")
+    
     # Ensure plots directory exists
     os.makedirs(plots_dir, exist_ok=True)
     
-    # Plot density profile
-    density_file = os.path.join(analysis_dir, 'density.xvg')
+    print('Plotting density profile...')
+    
+    # Density profile
+    density_file = os.path.join(data_dir, 'density.xvg')
     if os.path.exists(density_file):
-        print('Plotting density profile...')
         x, y, title, xlabel, ylabel, legend_labels = read_xvg(density_file)
         
         if len(x) > 0 and len(y) > 0:
@@ -358,24 +352,70 @@ def main():
             plot_xlabel = xlabel if xlabel else 'Position (nm)'
             plot_ylabel = ylabel if ylabel else 'Density (kg/m³)'
             
+            # Convert units if needed (GROMACS often uses g/L or amu/nm³)
+            # Check if units are in the ylabel
+            if plot_ylabel and ('g/l' in plot_ylabel.lower() or 'g/dm3' in plot_ylabel.lower()):
+                # Convert g/L to kg/m³ (they are the same numerically)
+                pass
+            elif plot_ylabel and 'amu/nm3' in plot_ylabel.lower():
+                # Convert amu/nm³ to kg/m³ (approximate conversion)
+                y = y * 1.66053886  # 1 amu/nm³ ≈ 1.66 kg/m³
+                plot_ylabel = 'Density (kg/m³)'
+            
             output_path = os.path.join(plots_dir, 'density_profile_plot.png')
-            plot_density_profile(x, y, plot_title, plot_xlabel, plot_ylabel, legend_labels, output_path)
+            plot_density_profile(x, y, plot_title, plot_xlabel, plot_ylabel, output_path)
+            
+            # Create histogram of density values
+            output_path = os.path.join(plots_dir, 'density_histogram.png')
+            plot_density_histogram((x, y), output_path)
     else:
-        print(f"Density profile file not found: {density_file}")
+        print(f"Density file not found: {density_file}")
     
-    # Plot radial density map
-    radial_density_file = os.path.join(analysis_dir, 'density_radial.xpm')
-    if os.path.exists(radial_density_file):
-        print('Plotting radial density map...')
-        x, y, data, color_values = read_xpm(radial_density_file)
-        
-        if data is not None:
-            output_path = os.path.join(plots_dir, 'radial_density_map.png')
-            plot_radial_density_map(x, y, data, color_values, output_path)
-        else:
-            print("  - Could not read radial density map data")
+    # Radial density map (if available)
+    density_map_file = os.path.join(data_dir, 'density_radial.xpm')
+    if os.path.exists(density_map_file):
+        try:
+            # Read XPM file
+            density_map, extent = read_xpm(density_map_file)
+            
+            if density_map is not None:
+                # Create a figure
+                plt.figure(figsize=(10, 8), dpi=300)
+                
+                # Plot the density map with enhanced styling
+                im = plt.imshow(density_map, extent=extent, origin='lower', cmap='viridis')
+                
+                # Add colorbar
+                cbar = plt.colorbar(im)
+                cbar.set_label('Density (kg/m³)', fontsize=14)
+                
+                # Add title and labels with enhanced styling
+                plt.title('Radial Density Map', fontsize=16, fontweight='bold')
+                plt.xlabel('X (nm)', fontsize=14)
+                plt.ylabel('Y (nm)', fontsize=14)
+                
+                # Add grid and improve styling
+                plt.grid(True, linestyle='--', alpha=0.3)
+                plt.tick_params(axis='both', which='major', labelsize=12)
+                
+                # Add explanation text
+                explanation = (
+                    "The radial density map shows the spatial distribution of density in the system.\n"
+                    "Higher values (yellow/white) indicate regions of higher density."
+                )
+                plt.figtext(0.5, 0.01, explanation, ha='center', fontsize=9,
+                           bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'))
+                
+                # Save figure with tight layout
+                output_path = os.path.join(plots_dir, 'radial_density_map.png')
+                plt.tight_layout(rect=[0, 0.08, 1, 1])  # Adjust for the explanation text
+                plt.savefig(output_path, dpi=300, bbox_inches='tight')
+                plt.close()
+                print(f'  - radial_density_map.png saved successfully')
+        except Exception as e:
+            print(f"Error reading XPM file {density_map_file}: {e}")
     else:
-        print(f"Radial density map file not found: {radial_density_file}")
+        print(f"Radial density map file not found: {density_map_file}")
 
 if __name__ == "__main__":
     main() 
