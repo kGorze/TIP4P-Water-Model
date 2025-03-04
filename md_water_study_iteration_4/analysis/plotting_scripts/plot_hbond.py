@@ -108,8 +108,79 @@ def calculate_statistics(data):
             'final': data[-1] if len(data) > 0 else 0
         }
 
-def plot_hbond_number(x, y, title, xlabel, ylabel, legend_labels, output_path, n_molecules=300):
+def get_num_water_molecules(data_dir):
+    """Extract the number of water molecules from the topology file."""
+    # Look for topology file in the data directory
+    topology_file = os.path.join(data_dir, "topol.top")
+    
+    if not os.path.exists(topology_file):
+        # Try looking in the parent directory
+        topology_file = os.path.join(os.path.dirname(data_dir), "topol.top")
+    
+    if not os.path.exists(topology_file):
+        # Try looking in the data subdirectory
+        topology_file = os.path.join(data_dir, "data", "topol.top")
+        
+    if os.path.exists(topology_file):
+        # Parse the topology file to find the number of water molecules
+        with open(topology_file, 'r') as f:
+            for line in f:
+                if "SOL" in line and not line.startswith(";"):
+                    parts = line.strip().split()
+                    if len(parts) >= 2:
+                        try:
+                            return int(parts[-1])
+                        except ValueError:
+                            pass
+    
+    # If we couldn't find it in the topology file, check the water_box.inp file
+    configs_dir = os.path.join(os.path.dirname(os.path.dirname(data_dir)), "configs")
+    water_box_file = os.path.join(configs_dir, "water_box.inp")
+    
+    if os.path.exists(water_box_file):
+        with open(water_box_file, 'r') as f:
+            for line in f:
+                if "number" in line and not line.startswith("#"):
+                    parts = line.strip().split()
+                    if len(parts) >= 2:
+                        try:
+                            return int(parts[1])
+                        except ValueError:
+                            pass
+    
+    # If we still can't find it, try to parse it from the .gro file
+    gro_files = [
+        os.path.join(data_dir, "md.gro"),
+        os.path.join(os.path.dirname(data_dir), "md.gro"),
+        os.path.join(data_dir, "data", "md.gro")
+    ]
+    
+    for gro_file in gro_files:
+        if os.path.exists(gro_file):
+            try:
+                with open(gro_file, 'r') as f:
+                    # Second line of .gro file contains the number of atoms
+                    lines = f.readlines()
+                    if len(lines) > 1:
+                        num_atoms = int(lines[1].strip())
+                        # Assuming TIP4P water (4 atoms per molecule)
+                        return num_atoms // 4
+            except:
+                pass
+    
+    # If all else fails, print a warning and return a reasonable default
+    print("Warning: Could not determine number of water molecules, using default value of 5500")
+    return 5500  # Default based on typical water box size
+
+def plot_hbond_number(x, y, title, xlabel, ylabel, legend_labels, output_path, n_molecules=None):
     """Plot the number of hydrogen bonds with statistics and per-molecule calculation"""
+    # If n_molecules is not provided, try to determine it from the topology file
+    if n_molecules is None:
+        # Extract the directory from the output path
+        data_dir = os.path.dirname(os.path.dirname(output_path))
+        n_molecules = get_num_water_molecules(data_dir)
+        print(f"Found {n_molecules} water molecules in topology file")
+    
     plt.figure(figsize=(12, 8), dpi=300)
     
     # Convert to numpy arrays if they're lists

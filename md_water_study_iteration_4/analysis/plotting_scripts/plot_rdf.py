@@ -21,6 +21,7 @@ except ImportError:
 LITERATURE_VALUES = {
     'OO_first_peak': 0.28,   # nm, first peak in O-O RDF (2.8 Å)
     'OO_second_peak': 0.45,  # nm, second peak in O-O RDF (4.5 Å)
+    'OO_third_peak': 0.68,   # nm, third peak in O-O RDF (6.8 Å)
     'OH_peak': 0.18,         # nm, O-H intermolecular peak (1.8 Å)
     'HH_peak': 0.23,         # nm, H-H intermolecular peak (2.3 Å)
     'OO_coordination': 4.5,  # Coordination number for first shell
@@ -368,42 +369,61 @@ def create_combined_rdf_plot(rdf_data, output_path):
     # Add reference line at g(r)=1
     ax.axhline(y=1.0, color='gray', linestyle='--', alpha=0.7, linewidth=1.5, label='g(r)=1 (random)')
     
-    # Add vertical markers for literature values
+    # Add vertical markers for literature values with vertical offsets for better readability
     # O-O first peak
     ax.axvline(x=LITERATURE_VALUES['OO_first_peak'], color='#1f77b4', linestyle=':', alpha=0.5)
-    ax.text(LITERATURE_VALUES['OO_first_peak'] + 0.01, ax.get_ylim()[1]*0.9, 
+    ax.text(LITERATURE_VALUES['OO_first_peak'] + 0.01, ax.get_ylim()[1]*0.95, 
            f"O-O (lit): {LITERATURE_VALUES['OO_first_peak']} nm", 
-           rotation=90, color='#1f77b4', fontsize=9, alpha=0.7)
+           rotation=90, color='#1f77b4', fontsize=9, alpha=0.7,
+           bbox=dict(facecolor='white', alpha=0.7, pad=2, edgecolor='none'))
     
     # O-O second peak
     ax.axvline(x=LITERATURE_VALUES['OO_second_peak'], color='#1f77b4', linestyle=':', alpha=0.5)
-    ax.text(LITERATURE_VALUES['OO_second_peak'] + 0.01, ax.get_ylim()[1]*0.9, 
+    ax.text(LITERATURE_VALUES['OO_second_peak'] + 0.01, ax.get_ylim()[1]*0.85, 
            f"O-O (lit): {LITERATURE_VALUES['OO_second_peak']} nm", 
-           rotation=90, color='#1f77b4', fontsize=9, alpha=0.7)
+           rotation=90, color='#1f77b4', fontsize=9, alpha=0.7,
+           bbox=dict(facecolor='white', alpha=0.7, pad=2, edgecolor='none'))
+    
+    # O-O third peak
+    ax.axvline(x=LITERATURE_VALUES['OO_third_peak'], color='#1f77b4', linestyle=':', alpha=0.5)
+    ax.text(LITERATURE_VALUES['OO_third_peak'] + 0.01, ax.get_ylim()[1]*0.75, 
+           f"O-O (lit): {LITERATURE_VALUES['OO_third_peak']} nm", 
+           rotation=90, color='#1f77b4', fontsize=9, alpha=0.7,
+           bbox=dict(facecolor='white', alpha=0.7, pad=2, edgecolor='none'))
     
     # O-H intramolecular
     ax.axvline(x=LITERATURE_VALUES['OH_intramolecular'], color='#ff7f0e', linestyle=':', alpha=0.5)
-    ax.text(LITERATURE_VALUES['OH_intramolecular'] + 0.01, ax.get_ylim()[1]*0.8, 
+    ax.text(LITERATURE_VALUES['OH_intramolecular'] + 0.01, ax.get_ylim()[1]*0.65, 
            f"O-H bond (lit): {LITERATURE_VALUES['OH_intramolecular']} nm", 
-           rotation=90, color='#ff7f0e', fontsize=9, alpha=0.7)
+           rotation=90, color='#ff7f0e', fontsize=9, alpha=0.7,
+           bbox=dict(facecolor='white', alpha=0.7, pad=2, edgecolor='none'))
     
     # H-H intramolecular
     ax.axvline(x=LITERATURE_VALUES['HH_intramolecular'], color='#2ca02c', linestyle=':', alpha=0.5)
-    ax.text(LITERATURE_VALUES['HH_intramolecular'] + 0.01, ax.get_ylim()[1]*0.7, 
+    ax.text(LITERATURE_VALUES['HH_intramolecular'] + 0.01, ax.get_ylim()[1]*0.55, 
            f"H-H (lit): {LITERATURE_VALUES['HH_intramolecular']} nm", 
-           rotation=90, color='#2ca02c', fontsize=9, alpha=0.7)
+           rotation=90, color='#2ca02c', fontsize=9, alpha=0.7,
+           bbox=dict(facecolor='white', alpha=0.7, pad=2, edgecolor='none'))
     
     # Add solvation shell annotations if O-O data is available
     if rdf_oo_data:
         # First solvation shell (typically around 0.28 nm)
         first_shell_x = LITERATURE_VALUES['OO_first_peak']
         ax.axvline(x=first_shell_x, color='gray', linestyle=':', alpha=0.7)
-        ax.text(first_shell_x + 0.02, 0.5, '1st shell', rotation=90, alpha=0.7)
+        ax.text(first_shell_x + 0.02, 0.5, '1st shell', rotation=90, alpha=0.7,
+               bbox=dict(facecolor='white', alpha=0.7, pad=2, edgecolor='none'))
         
         # Second solvation shell (typically around 0.45 nm)
         second_shell_x = LITERATURE_VALUES['OO_second_peak']
         ax.axvline(x=second_shell_x, color='gray', linestyle=':', alpha=0.7)
-        ax.text(second_shell_x + 0.02, 0.5, '2nd shell', rotation=90, alpha=0.7)
+        ax.text(second_shell_x + 0.02, 0.5, '2nd shell', rotation=90, alpha=0.7,
+               bbox=dict(facecolor='white', alpha=0.7, pad=2, edgecolor='none'))
+        
+        # Third solvation shell (typically around 0.68 nm)
+        third_shell_x = LITERATURE_VALUES['OO_third_peak']
+        ax.axvline(x=third_shell_x, color='gray', linestyle=':', alpha=0.7)
+        ax.text(third_shell_x + 0.02, 0.5, '3rd shell', rotation=90, alpha=0.7,
+               bbox=dict(facecolor='white', alpha=0.7, pad=2, edgecolor='none'))
     
     # Add title and labels with enhanced styling
     ax.set_title('Radial Distribution Functions for TIP4P Water', fontsize=16, fontweight='bold')
@@ -416,14 +436,14 @@ def create_combined_rdf_plot(rdf_data, output_path):
     # Add legend with enhanced styling
     ax.legend(fontsize=12, framealpha=0.8, loc='upper right')
     
-    # Add text box with explanation and simulation conditions
+    # Add text box with explanation and simulation conditions - repositioned to avoid overlap with data
     explanation = (
         "The radial distribution function g(r) describes how\n"
         "density varies as a function of distance from a reference particle.\n"
         "g(r) = 1 indicates random distribution (bulk density).\n"
         "Peaks indicate preferred coordination distances."
     )
-    ax.text(0.5, 0.05, explanation, transform=ax.transAxes, fontsize=10,
+    ax.text(0.5, 0.15, explanation, transform=ax.transAxes, fontsize=10,
            bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.8, edgecolor='gray'),
            ha='center')
     
