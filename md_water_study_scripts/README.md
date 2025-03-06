@@ -1,54 +1,102 @@
-# Centralized MD Water Study Scripts
+# MD Water Study Centralized Scripts
 
-This directory contains the centralized scripts for the MD Water Study project. The scripts are designed to work with any iteration directory and provide consistent functionality across all iterations.
+This directory contains the centralized scripts for the Molecular Dynamics Water Study project. These scripts provide a consistent framework for simulating and analyzing different water models across all project iterations.
 
-## Usage
+## Overview
 
-The scripts in this directory can be used with any iteration of the MD Water Study by passing the `--iteration-dir` parameter, which specifies the path to the iteration directory to work with.
+The centralized scripts system offers several key advantages:
 
-### Running a Complete Workflow
+1. **Consistency**: All iterations use the same script versions, ensuring reproducible results
+2. **Maintainability**: Bug fixes and improvements only need to be made in one place
+3. **Efficiency**: No need to recreate scripts for each new iteration
+4. **Flexibility**: Can specify which iteration to work with for any script
 
-To run a complete workflow on a specific iteration:
+## Script Categories
+
+The scripts are organized into several categories:
+
+### Core Workflow Scripts
+
+- **run_workflow.py**: Complete workflow from system creation to analysis and plotting
+- **run_simulation.py**: System creation and simulation only
+- **analyze_results.py**: Analysis of simulation results
+- **plot_results.py**: Generation of plots from analysis data
+
+### Utility Scripts
+
+- **run_on_iteration.py**: Utility to run any script on any iteration
+- **setup_iteration.py**: Create a new iteration directory with the correct structure
+- **compare_iterations.py**: Compare results across multiple iterations
+
+### Analysis Scripts
+
+- **rdf_analysis.py**: Radial distribution function analysis
+- **msd_analysis.py**: Mean square displacement and diffusion coefficient
+- **density_analysis.py**: Density profile and distribution
+- **energy_analysis.py**: Energy components and fluctuations
+- **hbond_analysis.py**: Hydrogen bond analysis
+- **vacf_analysis.py**: Velocity autocorrelation function
+
+## Using the Scripts
+
+### The run_on_iteration.py Utility
+
+The recommended way to use these scripts is through the `run_on_iteration.py` utility, which handles the correct passing of parameters to the underlying scripts:
 
 ```bash
-python run_workflow.py --model tip4p --temp 273 --iteration-dir /path/to/md_water_study_iteration_X
+./run_on_iteration.py <script_name> <iteration_name> [additional arguments]
 ```
 
-### Running Only the Simulation
-
-To run only the simulation part:
+Examples:
 
 ```bash
-python run_simulation.py --model tip4p --temp 273 --iteration-dir /path/to/md_water_study_iteration_X
+# Run the complete workflow on the TIP4P model iteration
+./run_on_iteration.py run_workflow.py WATER_TIP4P_MODEL --model tip4p --temp 273
+
+# Run only the analysis on the TIP4P/Ice model iteration
+./run_on_iteration.py analyze_results.py WATER_TIP4PICE_MODEL --model tip4pice --temp 273
+
+# Generate plots for the TIP4P model iteration
+./run_on_iteration.py plot_results.py WATER_TIP4P_MODEL --model tip4p --temp 273
 ```
 
-### Running Analysis Only
+### Listing Available Scripts and Iterations
 
-To run only the analysis part:
+To list all available scripts:
+```bash
+./run_on_iteration.py list any_iteration
+```
+
+To list all available iterations:
+```bash
+./run_on_iteration.py any_script list
+```
+
+### Running a Script on All Iterations
+
+To run a script on all iterations:
+```bash
+./run_on_iteration.py analyze_results.py all --model tip4p --temp 273
+```
+
+### Direct Script Usage
+
+You can also use the scripts directly by specifying the iteration directory:
 
 ```bash
-python analyze_results.py --model tip4p --temp 273 --iteration-dir /path/to/md_water_study_iteration_X
+python run_workflow.py --model tip4p --temp 273 --iteration-dir /path/to/WATER_TIP4P_MODEL
 ```
 
-### Generating Plots
-
-To generate plots from analysis results:
-
-```bash
-python plot_results.py --model tip4p --temp 273 --iteration-dir /path/to/md_water_study_iteration_X
-```
-
-## Directory Structure
+## Expected Directory Structure
 
 The scripts expect each iteration directory to have the following structure:
 
 ```
-md_water_study_iteration_X/
+iteration_directory/
 ├── analysis/                # Analysis results
-│   └── tip4p/
-│       └── 273K/
-│           ├── plots/       # Generated plots
-│           └── *.xvg        # Analysis data files
+│   ├── data/                # Raw analysis data (.xvg, .xpm)
+│   ├── plots/               # Generated plots
+│   └── plotting_scripts/    # Python scripts for plotting
 ├── configs/                 # Template configuration files
 │   ├── em.mdp               # Energy minimization config
 │   ├── md.mdp               # Molecular dynamics config
@@ -56,16 +104,69 @@ md_water_study_iteration_X/
 │   ├── nvt.mdp              # NVT equilibration config
 │   └── water_box.inp        # Water box generation config
 ├── data/                    # Simulation data
-│   └── tip4p/
-│       └── 273K/
-│           ├── inputs/      # Input files (.mdp, .top, .inp, .pdb)
-│           ├── outputs/     # Output files (.gro, .xtc, .trr, .edr, .tpr)
-│           └── logs/        # Log files (.log)
-├── docs/                    # Documentation
-└── unused_analysis/         # Deprecated analysis
-└── unused_scripts/          # Deprecated scripts
+│   ├── Coordinate files (.gro, .pdb)
+│   ├── Trajectory files (.trr, .xtc)
+│   ├── Energy files (.edr)
+│   ├── Log files (.log)
+│   └── Checkpoint files (.cpt)
+├── logs/                    # Log files
+├── checkpoints/             # Checkpoint files for resuming simulations
+└── scripts/                 # Iteration-specific scripts
 ```
 
-## Important Note
+## Script Parameters
 
-These scripts always use the centralized script directory for executing commands, but work on the specified iteration directory for data and configuration. This ensures consistent script behavior across all iterations. 
+Most scripts accept the following common parameters:
+
+- `--model`: Water model to use (e.g., tip3p, tip4p, tip4pice, spce)
+- `--temp`: Temperature in Kelvin (e.g., 273, 298, 310)
+- `--pressure`: Pressure in bar (default: 1.0)
+- `--iteration-dir`: Path to the iteration directory
+- `--verbose`: Enable verbose output
+- `--help`: Show help message
+
+## Creating a New Iteration
+
+To create a new iteration directory with the correct structure:
+
+```bash
+./setup_iteration.py create --name NEW_ITERATION_NAME --base-model tip4p
+```
+
+This will create a new iteration directory with all necessary subdirectories and template files.
+
+## Extending the Scripts
+
+The centralized scripts are designed to be extensible. To add a new analysis type:
+
+1. Create a new script in this directory (e.g., `new_analysis.py`)
+2. Follow the pattern of existing analysis scripts
+3. Use the common parameter handling functions
+4. Register the script in `run_on_iteration.py` if needed
+
+## Troubleshooting
+
+If you encounter issues with the scripts:
+
+1. Check that the iteration directory has the expected structure
+2. Ensure GROMACS and other dependencies are properly installed
+3. Check the log files in the iteration's `logs/` directory
+4. Try running with the `--verbose` flag for more detailed output
+
+## Dependencies
+
+These scripts depend on:
+
+- Python 3.6+
+- NumPy, Matplotlib, SciPy
+- GROMACS (accessible in PATH)
+- Julia with Packmol (for system creation)
+
+## Contributing
+
+When contributing to these scripts, please:
+
+1. Follow the existing code style
+2. Add comprehensive docstrings
+3. Test your changes on multiple iterations
+4. Update this README if you add new functionality 
