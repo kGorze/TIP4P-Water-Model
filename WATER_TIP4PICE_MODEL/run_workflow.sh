@@ -662,7 +662,7 @@ run_step "msd_analysis" "Calculate Mean Square Displacement for diffusion coeffi
 "
 
 # Additional analysis
-run_step "additional_analysis" "Perform additional analysis" $'
+run_step "additional_analysis" "Perform additional analysis" "
   cd "${DATA_DIR}"
   log "Performing additional analysis..."
   
@@ -673,63 +673,11 @@ run_step "additional_analysis" "Perform additional analysis" $'
   
   # Generate density map
   log "Generating density map..."
-  echo "1" | gmx densmap -f md.xtc -s md.tpr -o "${ANALYSIS_DIR}/data/density_map.xpm" -bin 0.05 2>/dev/null || {
+  echo "1" | gmx densmap -f md.xtc -s md.tpr -o "${ANALYSIS_DIR}/data/density_map.xpm" -bin 0.05 || {
       log "Standard densmap approach failed, trying alternative parameters..."
-      echo "SOL" | gmx densmap -f md.xtc -s md.tpr -o "${ANALYSIS_DIR}/data/density_map.xpm" -bin 0.1 -unit nm-3 2>/dev/null || {
-          log "All densmap approaches failed, creating a synthetic density map..."
-          cat > "${ANALYSIS_DIR}/data/density_map.xpm" << \'EOF_DENSITY_XPM\'
-/* XPM */
-/* This file can be converted to EPS by the GROMACS program xpm2ps */
-/* title:   "Water Density Map" */
-/* legend:  "Density (kg/m^3)" */
-/* x-label: "x (nm)" */
-/* y-label: "y (nm)" */
-/* type:    "Continuous" */
-static char *gromacs_xpm[] = {
-"50 50   5 1",
-"A  c #FFFFFF /* \"0\" */",
-"B  c #87CEFA /* \"250\" */",
-"C  c #1E90FF /* \"500\" */",
-"D  c #0000FF /* \"750\" */",
-"E  c #00008B /* \"1000\" */",
-/* x-axis:  0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4 4.1 4.2 4.3 4.4 4.5 4.6 4.7 4.8 4.9 */
-/* y-axis:  0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4 4.1 4.2 4.3 4.4 4.5 4.6 4.7 4.8 4.9 */
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAABBBBBBCCCCCCCCDDDDEEDDCCCCCCCBBBBBBBBBAAAAAAAAAAAAA",
-"AAAABBBBBBCCCCCCCCDDDDEEDDCCCCCCCBBBBBBBBBAAAAAAAAAAAAA",
-"AAAABBBBBBCCCCCCCCDDDDEEDDCCCCCCCBBBBBBBBBAAAAAAAAAAAAA",
-"AAAABBBBBBCCCCCCCCDDDDEEDDCCCCCCCBBBBBBBBBAAAAAAAAAAAAA",
-"AAAABBBBBBCCCCCCCCDDDDEEDDCCCCCCCBBBBBBBBBAAAAAAAAAAAAA",
-"AAAABBBBBBCCCCCCCCDDDDEEDDCCCCCCCBBBBBBBBBAAAAAAAAAAAAA",
-"AAAABBBBBBCCCCCCCCDDDDEEDDCCCCCCCBBBBBBBBBAAAAAAAAAAAAA",
-"AAAAABBBBBBCCCCCCCCDDDDDDDCCCCCCCBBBBBBBBAAAAAAAAAAAAA",
-"AAAAABBBBBBBCCCCCCCCDDDDDCCCCCCCBBBBBBBBBAAAAAAAAAAAAA",
-"AAAAAABBBBBBCCCCCCCCDDDDDCCCCCCCBBBBBBBBAAAAAAAAAAAAA",
-"AAAAAAABBBBBBBCCCCCCCDDDDCCCCCCCBBBBBBBAAAAAAAAAAAAAA",
-"AAAAAAAABBBBBBCCCCCCCCCCCCCCCCCBBBBBBBAAAAAAAAAAAAAAA",
-"AAAAAAAAABBBBBBBCCCCCCCCCCCCCBBBBBBBBAAAAAAAAAAAAAAA",
-"AAAAAAAAAABBBBBBBBCCCCCCCCCBBBBBBBBAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAABBBBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAABBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-};
-EOF_DENSITY_XPM
+      echo "SOL" | gmx densmap -f md.xtc -s md.tpr -o "${ANALYSIS_DIR}/data/density_map.xpm" -bin 0.1 -unit nm-3 || {
+          log "All densmap approaches failed."
+          exit 1
       }
   }
   
@@ -737,15 +685,15 @@ EOF_DENSITY_XPM
   if [ -f "${ANALYSIS_DIR}/data/density_map.xpm" ]; then
     log "Density map XPM file created successfully."
   else
-    log "Warning: Failed to create density map XPM file."
+    log "Error: Failed to create density map XPM file."
+    exit 1
   fi
   
   log "Additional data files generated successfully."
-'
+"
 
 # Step 12: Hydrogen bond analysis
-run_step "hbond_analysis" "Perform hydrogen bond analysis" "$(
-  cat << 'EOF_HBOND_ANALYSIS'
+run_step "hbond_analysis" "Perform hydrogen bond analysis" "
   cd "${DATA_DIR}"
   
   # Debug: Check if required files exist
@@ -785,126 +733,27 @@ EOF_HBOND
   # Run hbond analysis with the input file
   log "Running hydrogen bond analysis for TIP4P/Ice..."
   
-  # Try to run the analysis, but create synthetic data if it fails
-  if ! gmx hbond -f md.xtc -s md.tpr -n hbond.ndx \
+  # Run the analysis
+  gmx hbond -f md.xtc -s md.tpr -n hbond.ndx \
        -num "${ANALYSIS_DIR}/data/hbnum.xvg" \
        -dist "${ANALYSIS_DIR}/data/hbdist.xvg" \
-       -ang "${ANALYSIS_DIR}/data/hbang.xvg" < hbond.input; then
+       -ang "${ANALYSIS_DIR}/data/hbang.xvg" < hbond.input || {
     
     log "Standard hbond analysis failed, trying with just number of hydrogen bonds..."
     
-    if ! gmx hbond -f md.xtc -s md.tpr -n hbond.ndx \
-         -num "${ANALYSIS_DIR}/data/hbnum.xvg" < hbond.input; then
+    gmx hbond -f md.xtc -s md.tpr -n hbond.ndx \
+         -num "${ANALYSIS_DIR}/data/hbnum.xvg" < hbond.input || {
       
-      log "All hydrogen bond analysis approaches failed, creating synthetic data"
-      
-      # Create synthetic data as a last resort
-      log "Creating synthetic hydrogen bond data..."
-      
-      # Create synthetic hbnum.xvg
-      cat > "${ANALYSIS_DIR}/data/hbnum.xvg" << 'EOF_HBNUM'
-# Synthetic hydrogen bond number data
-@    title "Hydrogen Bonds"
-@    xaxis  label "Time (ps)"
-@    yaxis  label "Number"
-@    s0 legend "Hydrogen bonds"
-@TYPE xy
-0.0 1.8
-50.0 1.9
-100.0 1.8
-150.0 1.7
-200.0 1.8
-250.0 1.9
-300.0 1.8
-350.0 1.7
-400.0 1.8
-450.0 1.9
-500.0 1.8
-550.0 1.7
-600.0 1.8
-650.0 1.9
-700.0 1.8
-750.0 1.7
-800.0 1.8
-850.0 1.9
-900.0 1.8
-950.0 1.7
-1000.0 1.8
-EOF_HBNUM
-      
-      # Create synthetic hbdist.xvg
-      cat > "${ANALYSIS_DIR}/data/hbdist.xvg" << 'EOF_HBDIST'
-# Synthetic hydrogen bond distance data
-@    title "Hydrogen Bond Distribution"
-@    xaxis  label "Distance (nm)"
-@    yaxis  label "Count"
-@    s0 legend "Hydrogen bonds"
-@TYPE xy
-0.14 0
-0.15 0
-0.16 0
-0.17 0
-0.18 10
-0.19 50
-0.20 200
-0.21 500
-0.22 800
-0.23 1000
-0.24 900
-0.25 700
-0.26 500
-0.27 300
-0.28 200
-0.29 100
-0.30 50
-0.31 20
-0.32 10
-0.33 5
-0.34 0
-0.35 0
-EOF_HBDIST
-      
-      # Create synthetic hbang.xvg
-      cat > "${ANALYSIS_DIR}/data/hbang.xvg" << 'EOF_HBANG'
-# Synthetic hydrogen bond angle data
-@    title "Hydrogen Bond Angle Distribution"
-@    xaxis  label "Angle (degrees)"
-@    yaxis  label "Count"
-@    s0 legend "Hydrogen bonds"
-@TYPE xy
-0 0
-10 0
-20 0
-30 50
-40 200
-50 500
-60 800
-70 1000
-80 900
-90 700
-100 500
-110 300
-120 200
-130 100
-140 50
-150 20
-160 10
-170 5
-180 0
-EOF_HBANG
-    fi
-  fi
-  
-  # Create checkpoint
-  create_checkpoint "hbond_analysis"
+      log "All hydrogen bond analysis approaches failed."
+      exit 1
+    }
+  }
   
   log "Hydrogen bond analysis completed."
-EOF_HBOND_ANALYSIS
-)"
-
+"
 
 # Step 13: Velocity autocorrelation function (VACF) analysis
-run_step "vacf_analysis" "Perform velocity autocorrelation function analysis" <<'EOF_VACF_ANALYSIS'
+run_step "vacf_analysis" "Perform velocity autocorrelation function analysis" "
   cd "${DATA_DIR}"
   
   # Check if md.trr exists (velocities are stored in .trr files)
@@ -919,9 +768,28 @@ run_step "vacf_analysis" "Perform velocity autocorrelation function analysis" <<
     log "VACF analysis completed."
   else
     log "Warning: md.trr file not found. VACF analysis requires velocities which are stored in .trr files."
-    log "Skipping VACF analysis."
+    
+    # Generate velocities using a more robust approach
+    log "Generating velocities from positions..."
+    gmx grompp -f "${CONFIGS_DIR}/md.mdp" -c md.gro -p topol.top -o md_with_vel.tpr -maxwarn 2 || { log "TPR generation failed"; exit 1; }
+    
+    # Then run a short simulation to generate velocities
+    gmx mdrun -s md_with_vel.tpr -rerun md.xtc -o md_with_vel.trr -v || { log "TRR generation failed"; exit 1; }
+    
+    # Now try VACF analysis with the generated TRR file
+    if [ -f "md_with_vel.trr" ]; then
+      # Create index file for VACF analysis
+      echo "q" | gmx make_ndx -f md_with_vel.tpr -o index.ndx || { log "Failed to create index file for VACF analysis"; exit 1; }
+      
+      # Run VACF analysis with the index file
+      echo "SOL" | gmx velacc -f md_with_vel.trr -s md_with_vel.tpr -n index.ndx -o "${ANALYSIS_DIR}/data/vacf.xvg" -os "${ANALYSIS_DIR}/data/vacf_spectrum.xvg" -acflen 1000 -nonormalize || { log "VACF analysis failed"; exit 1; }
+      log "VACF analysis completed after generating velocities."
+    else
+      log "Failed to generate velocity data. VACF analysis cannot be performed."
+      exit 1
+    fi
   fi
-EOF_VACF_ANALYSIS
+"
 
 # Step 14: Generate plots
 run_step "generate_plots" "Generate plots" "
