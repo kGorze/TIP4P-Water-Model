@@ -1,15 +1,15 @@
 # Molecular Dynamics Water Study
 
-This project is a comprehensive investigation of water properties using molecular dynamics simulations with different water models. It provides a centralized scripts system to ensure consistent methodology across multiple iterations, allowing for systematic comparison of different water models and simulation conditions.
+This project is a investigation of water properties using molecular dynamics simulations with two water models(in future maybe more). It provides a centralized scripts system to ensure consistent methodology across multiple iterations, allowing for systematic comparison of different water models and simulation conditions.
 
 ## Project Overview
 
 The MD Water Study project aims to:
 
-1. **Compare different water models** (TIP3P, TIP4P, TIP4P/Ice, SPC/E, etc.)
+1. **Compare different water models** (TIP4P, TIP4P/Ice, ...)
 2. **Analyze water properties** at different temperatures and pressures
 3. **Provide reproducible workflows** for water simulations
-4. **Generate publication-quality analyses** and visualizations
+4. **Generate quality analyses** and visualizations
 5. **Establish best practices** for water model selection based on the properties of interest
 
 ## Project Structure
@@ -18,7 +18,6 @@ The project consists of:
 
 1. `md_water_study_scripts/` - Central directory containing all shared scripts
 2. `md_water_study_iteration_X/` - Individual iteration directories for different water models/conditions
-3. `md_water_study_iteration_result/` - Directory for combined results from all iterations
 
 Current iterations include:
 
@@ -162,9 +161,9 @@ cd /home/konrad_guest/Documents/research/cursor/WATER_TIP4P_MODEL
 
 The project includes advanced visualization capabilities:
 
-- **Publication-quality plots** for all analyses
-- **High-quality movies** of water dynamics (TIP4P/Ice model)
-- **Comprehensive summary reports** with statistical analysis
+- **Quality plots** for all analyses
+- **Movies** of water dynamics (TIP4P/Ice model)
+- **Summary reports** with statistical analysis
 - **Radial density maps** and other specialized visualizations
 
 ## Key Findings
