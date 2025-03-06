@@ -1,0 +1,16 @@
+# PackMol input file for generating water box
+# Box with 5500 water molecules with careful initial placement to avoid bad contacts
+
+tolerance 5.0
+filetype pdb
+
+# Initial placement in a larger box to avoid bad contacts
+# Target density is 0.93 g/cm³, but start with larger box for better minimization
+# Final box will compress during NPT equilibration to reach the target density
+
+output water_box.pdb
+
+structure water.pdb
+  number 5500
+  inside box 0. 0. 0. 200. 200. 200.
+end structure 
