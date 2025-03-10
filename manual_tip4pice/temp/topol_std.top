@@ -1,0 +1,42 @@
+;
+;	File 'topol_std.top' was generated
+;	By user: konrad_guest (1000)
+;	On host: konrad-hp
+;	At date: Mon Mar 10 09:41:34 2025
+;
+;	This is a standalone topology file
+;
+;	Created by:
+;	                    :-) GROMACS - gmx pdb2gmx, 2024.3 (-:
+;	
+;	Executable:   /usr/local/gromacs/bin/gmx
+;	Data prefix:  /usr/local/gromacs
+;	Working dir:  /home/konrad_guest/Documents/research/cursor/manual_tip4pice/temp
+;	Command line:
+;	  gmx pdb2gmx -f ../water.pdb -o tip4p_std.gro -p topol_std.top -ff oplsaa -water tip4p -ignh
+;	Force field was read from the standard GROMACS share directory.
+;
+
+; Include forcefield parameters
+#include "oplsaa.ff/forcefield.itp"
+
+; Include water topology
+#include "oplsaa.ff/tip4p.itp"
+
+#ifdef POSRES_WATER
+; Position restraint for each water oxygen
+[ position_restraints ]
+;  i funct       fcx        fcy        fcz
+   1    1       1000       1000       1000
+#endif
+
+; Include topology for ions
+#include "oplsaa.ff/ions.itp"
+
+[ system ]
+; Name
+Protein
+
+[ molecules ]
+; Compound        #mols
+SOL                 1

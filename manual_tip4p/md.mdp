@@ -2,8 +2,8 @@
 integrator               = md        ; leap-frog integrator
 nsteps                   = 2500000   ; 5 ns (2,500,000 steps at 2 fs)
 dt                       = 0.002     ; 2 fs timestep
-nstxout                  = 0         ; disable full precision coordinates
-nstvout                  = 0         ; disable velocities
+nstxout                  = 5000      ;
+nstvout                  = 5000      ; 
 nstenergy                = 5000      ; save energies every 10.0 ps
 nstlog                   = 5000      ; update log file every 10.0 ps
 

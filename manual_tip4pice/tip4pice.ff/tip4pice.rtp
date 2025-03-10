@@ -1,0 +1,54 @@
+; File: tip4pice.rtp
+; Example of a TIP4P/Ice water residue for GROMACS pdb2gmx
+
+[ bondedtypes ]
+; bonds  angles  dihedrals  impropers
+     1       1          1         2
+
+[ SOL ]
+ [ atoms ]
+;   atomName   atomType   charge    chargeGroup
+    OW         OWT4       0.0000    1
+    HW1        HW         0.5897    1
+    HW2        HW         0.5897    1
+    MW         IW        -1.1794    1
+
+ [ bonds ]
+; i   j   funct   length
+    OW   HW1  1      0.09572
+    OW   HW2  1      0.09572
+    HW1  HW2  1      0.15139
+
+ [ exclusions ]
+; Exclude nonbonded interactions within this group
+    OW   HW1  HW2  MW
+    HW1  OW   HW2  MW
+    HW2  OW   HW1  MW
+    MW   OW   HW1  HW2
+
+; end of SOL residue
+
+[ HO4 ]
+ [ atoms ]
+;   atomName   atomType   charge    chargeGroup
+    OW         OWT4       0.0000    1
+    HW1        HW         0.5897    1
+    HW2        HW         0.5897    1
+    MW         IW        -1.1794    1
+
+ [ bonds ]
+; i   j   funct   length
+    OW   HW1  1      0.09572
+    OW   HW2  1      0.09572
+    HW1  HW2  1      0.15139
+
+ [ exclusions ]
+; Exclude nonbonded interactions within this group
+    OW   HW1  HW2  MW
+    HW1  OW   HW2  MW
+    HW2  OW   HW1  MW
+    MW   OW   HW1  HW2
+
+; end of HO4 residue
+
+

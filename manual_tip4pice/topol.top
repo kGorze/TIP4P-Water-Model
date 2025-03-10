@@ -1,0 +1,39 @@
+;
+;	File 'topol.top' was generated
+;	By user: konrad_guest (1000)
+;	On host: konrad-hp
+;	At date: Mon Mar 10 11:10:00 2025
+;
+;	This is a standalone topology file
+;
+;	Created by:
+;	                    :-) GROMACS - gmx pdb2gmx, 2024.3 (-:
+;	
+;	Executable:   /usr/local/gromacs/bin/gmx
+;	Data prefix:  /usr/local/gromacs
+;	Working dir:  /home/konrad_guest/Documents/research/cursor/manual_tip4pice
+;	Command line:
+;	  gmx pdb2gmx -f water_with_vs.pdb -o tip4p.gro -water tip4p
+;	Force field was read from current directory or a relative path - path added.
+;
+
+; Include forcefield parameters
+#include "./tip4pice.ff/forcefield.itp"
+
+; Include water topology
+#include "./tip4pice.ff/tip4p.itp"
+
+#ifdef POSRES_WATER
+; Position restraint for each water oxygen
+[ position_restraints ]
+;  i funct       fcx        fcy        fcz
+   1    1       1000       1000       1000
+#endif
+
+[ system ]
+; Name
+Single water molecule with virtual site
+
+[ molecules ]
+; Compound        #mols
+SOL                 5500

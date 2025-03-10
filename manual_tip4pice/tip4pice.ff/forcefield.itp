@@ -1,0 +1,8 @@
+; TIP4P/Ice forcefield parameters
+
+[ defaults ]
+; nbfunc  comb-rule   gen-pairs   fudgeLJ   fudgeQQ
+  1       2           no          1.0       1.0
+
+; Include atom types
+#include "ffnonbonded.itp"
