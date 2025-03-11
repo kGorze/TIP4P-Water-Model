@@ -64,6 +64,85 @@ def load_universe(tpr_file='md.tpr', trajectory_file='md.xtc'):
     print(f"Loading Universe from {tpr_file} and {trajectory_file}...")
     return mda.Universe(tpr_file, trajectory_file)
 
+def load_combined_universe(tpr_files=['em.tpr', 'nvt.tpr', 'npt.tpr', 'md.tpr'], 
+                          trajectory_files=['em.trr', 'nvt.trr', 'npt.trr', 'md.xtc'],
+                          start_frames=None, end_frames=None):
+    """
+    Load multiple trajectories for sequential analysis
+    
+    Parameters:
+    -----------
+    tpr_files : list
+        List of paths to .tpr files for each simulation stage
+    trajectory_files : list
+        List of paths to trajectory files (.xtc or .trr) for each simulation stage
+    start_frames : list or None
+        List of starting frames for each trajectory (None = start from beginning)
+    end_frames : list or None
+        List of ending frames for each trajectory (None = use all frames)
+        
+    Returns:
+    --------
+    list of (MDAnalysis.Universe, int, int)
+        List of (universe, start_frame, end_frame) tuples for each trajectory
+    list
+        List of frame counts for each trajectory
+    """
+    if len(tpr_files) != len(trajectory_files):
+        raise ValueError("Number of TPR files must match number of trajectory files")
+    
+    parent_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+    universes = []
+    frame_counts = []
+    
+    # Process each trajectory
+    for i, (tpr, traj) in enumerate(zip(tpr_files, trajectory_files)):
+        # Check if files exist in current directory, otherwise look in parent directory
+        if not os.path.exists(tpr):
+            parent_tpr = os.path.join(parent_dir, os.path.basename(tpr))
+            if os.path.exists(parent_tpr):
+                print(f"File {tpr} not found in current directory, using {parent_tpr} instead")
+                tpr = parent_tpr
+            else:
+                print(f"Warning: Could not find {tpr} in current or parent directory, skipping")
+                continue
+        
+        if not os.path.exists(traj):
+            parent_traj = os.path.join(parent_dir, os.path.basename(traj))
+            if os.path.exists(parent_traj):
+                print(f"File {traj} not found in current directory, using {parent_traj} instead")
+                traj = parent_traj
+            else:
+                print(f"Warning: Could not find {traj} in current or parent directory, skipping")
+                continue
+        
+        print(f"Loading trajectory {i+1}/{len(tpr_files)}: {tpr} and {traj}")
+        
+        # Load the universe
+        u = mda.Universe(tpr, traj)
+        
+        # Get frame range
+        start = 0 if start_frames is None or i >= len(start_frames) else start_frames[i]
+        end = None if end_frames is None or i >= len(end_frames) else end_frames[i]
+        
+        # Store the universe and frame range
+        universes.append((u, start, end))
+        
+        # Calculate number of frames in this trajectory
+        if end is None:
+            n_frames = len(u.trajectory) - start
+        else:
+            n_frames = end - start
+        
+        frame_counts.append(n_frames)
+        print(f"  - Added {n_frames} frames from {os.path.basename(traj)}")
+    
+    if not universes:
+        raise ValueError("No valid trajectories found")
+    
+    print(f"Successfully loaded {len(universes)} trajectories with {sum(frame_counts)} total frames")
+    return universes, frame_counts
+
 def save_plot(plt, filename, analysis_dir='../analysis', dpi=300):
     """
     Save a matplotlib plot to the analysis directory
