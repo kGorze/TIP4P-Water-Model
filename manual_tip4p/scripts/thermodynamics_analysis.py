@@ -52,32 +52,34 @@ def analyze_temperature(edr_file='md.edr'):
         f.write(f"# Mean temperature: {temp_mean:.4f} K\n")
         f.write(f"# Std deviation: {temp_std:.4f} K\n")
     
-    # Plot temperature vs time
-    plt.figure(figsize=(10, 6))
-    plt.plot(df['Time (ps)'], df['Temperature'], 'b-')
-    plt.axhline(temp_mean, color='r', linestyle='--', 
-                label=f'Mean: {temp_mean:.2f} K')
-    plt.axhline(temp_mean + temp_std, color='g', linestyle=':', 
-                label=f'±1 Std Dev: {temp_std:.2f} K')
-    plt.axhline(temp_mean - temp_std, color='g', linestyle=':')
-    plt.xlabel('Time (ps)')
-    plt.ylabel('Temperature (K)')
-    plt.title('Temperature vs Time')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    save_plot(plt, 'temperature_plot.png')
+    # --- Combined Temperature Plots: One figure with two subplots ---
+    fig, axs = plt.subplots(1, 2, figsize=(14, 6))
     
-    # Plot temperature histogram
-    plt.figure(figsize=(10, 6))
-    plt.hist(df['Temperature'], bins=30, alpha=0.7, color='blue', edgecolor='black')
-    plt.axvline(temp_mean, color='r', linestyle='--', 
-                label=f'Mean: {temp_mean:.2f} K')
-    plt.xlabel('Temperature (K)')
-    plt.ylabel('Frequency')
-    plt.title('Temperature Distribution')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    save_plot(plt, 'temperature_histogram.png')
+    # Subplot 1: Temperature vs Time
+    axs[0].plot(df['Time (ps)'], df['Temperature'], 'b-')
+    axs[0].axhline(temp_mean, color='r', linestyle='--', 
+                   label=f'Mean: {temp_mean:.2f} K')
+    axs[0].axhline(temp_mean + temp_std, color='g', linestyle=':', 
+                   label=f'±1 Std Dev: {temp_std:.2f} K')
+    axs[0].axhline(temp_mean - temp_std, color='g', linestyle=':')
+    axs[0].set_xlabel('Time (ps)')
+    axs[0].set_ylabel('Temperature (K)')
+    axs[0].set_title('Temperature vs Time')
+    axs[0].legend()
+    axs[0].grid(True, alpha=0.3)
+    
+    # Subplot 2: Temperature Distribution (Histogram)
+    axs[1].hist(df['Temperature'], bins=30, alpha=0.7, color='blue', edgecolor='black')
+    axs[1].axvline(temp_mean, color='r', linestyle='--', 
+                   label=f'Mean: {temp_mean:.2f} K')
+    axs[1].set_xlabel('Temperature (K)')
+    axs[1].set_ylabel('Frequency')
+    axs[1].set_title('Temperature Distribution')
+    axs[1].legend()
+    axs[1].grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    save_plot(plt, 'temperature_plot.png')
     
     return df
 
@@ -127,7 +129,7 @@ def analyze_pressure(edr_file='md.edr'):
     plt.figure(figsize=(12, 8))
     
     # Plot the pressure data
-    plt.plot(df['Time'], df['Pressure'], 'b-', alpha=0.7, label='Pressure')
+    plt.plot(df['Time (ps)'], df['Pressure'], 'b-', alpha=0.7, label='Pressure')
     
     # Add horizontal line for the mean
     plt.axhline(y=pressure_mean, color='r', linestyle='--',
@@ -143,7 +145,7 @@ def analyze_pressure(edr_file='md.edr'):
                label='Target: 1.0 bar')
     
     # Add shaded region for ±1 standard deviation
-    plt.fill_between(df['Time'], 
+    plt.fill_between(df['Time (ps)'], 
                     pressure_mean - pressure_std, 
                     pressure_mean + pressure_std, 
                     color='b', alpha=0.1)
@@ -179,12 +181,12 @@ def analyze_pressure(edr_file='md.edr'):
     
     # Plot 1: Pressure vs. time
     plt.subplot(2, 1, 1)
-    plt.plot(df['Time'], df['Pressure'], 'b-', alpha=0.7)
+    plt.plot(df['Time (ps)'], df['Pressure'], 'b-', alpha=0.7)
     plt.axhline(y=pressure_mean, color='r', linestyle='--',
                label=f'Mean: {pressure_mean:.2f} bar')
     plt.axhline(y=1.0, color='k', linestyle='-', alpha=0.5,
                label='Target: 1.0 bar')
-    plt.fill_between(df['Time'], 
+    plt.fill_between(df['Time (ps)'], 
                     pressure_mean - pressure_std, 
                     pressure_mean + pressure_std, 
                     color='b', alpha=0.1,
@@ -241,7 +243,7 @@ def analyze_pressure(edr_file='md.edr'):
     running_avg = np.cumsum(df['Pressure']) / np.arange(1, len(df['Pressure'])+1)
     
     # Plot running average
-    plt.plot(df['Time'], running_avg, 'g-', 
+    plt.plot(df['Time (ps)'], running_avg, 'g-', 
              label='Running average')
     
     # Add target and final average lines
@@ -300,7 +302,7 @@ def analyze_energy_components(edr_file='md.edr'):
     
     # Combine data into a single DataFrame
     df = pd.DataFrame({
-        'Time': energy_data['Potential']['Time'],
+        'Time (ps)': energy_data['Potential']['Time (ps)'],
         'Potential': energy_data['Potential']['Potential'],
         'Kinetic': energy_data['Kinetic']['Kinetic'],
         'Total': energy_data['Total-Energy']['Total-Energy']
@@ -315,7 +317,7 @@ def analyze_energy_components(edr_file='md.edr'):
     total_std = df['Total'].std()
     
     # Calculate drift in total energy (in kJ/mol/ns)
-    time_ns = df['Time'] / 1000  # Convert ps to ns
+    time_ns = df['Time (ps)'] / 1000  # Convert ps to ns
     total_energy = df['Total']
     
     # Linear regression to find the slope (drift)
@@ -337,9 +339,9 @@ def analyze_energy_components(edr_file='md.edr'):
     
     # Plot energy components
     plt.figure(figsize=(12, 8))
-    plt.plot(df['Time'], df['Potential'], 'b-', label=f'Potential: {potential_mean:.1f} ± {potential_std:.1f} kJ/mol')
-    plt.plot(df['Time'], df['Kinetic'], 'r-', label=f'Kinetic: {kinetic_mean:.1f} ± {kinetic_std:.1f} kJ/mol')
-    plt.plot(df['Time'], df['Total'], 'g-', label=f'Total: {total_mean:.1f} ± {total_std:.1f} kJ/mol')
+    plt.plot(df['Time (ps)'], df['Potential'], 'b-', label=f'Potential: {potential_mean:.1f} ± {potential_std:.1f} kJ/mol')
+    plt.plot(df['Time (ps)'], df['Kinetic'], 'r-', label=f'Kinetic: {kinetic_mean:.1f} ± {kinetic_std:.1f} kJ/mol')
+    plt.plot(df['Time (ps)'], df['Total'], 'g-', label=f'Total: {total_mean:.1f} ± {total_std:.1f} kJ/mol')
     
     # Add horizontal lines for the means
     plt.axhline(y=potential_mean, color='b', linestyle='--', alpha=0.5)
@@ -348,7 +350,7 @@ def analyze_energy_components(edr_file='md.edr'):
     
     # Add drift line for total energy
     drift_line = intercept + slope * time_ns
-    plt.plot(df['Time'], drift_line, 'k--', alpha=0.7, 
+    plt.plot(df['Time (ps)'], drift_line, 'k--', alpha=0.7, 
              label=f'Energy drift: {drift_rate:.4f} kJ/mol/ns')
     
     plt.xlabel('Time (ps)')
@@ -375,9 +377,9 @@ def analyze_energy_components(edr_file='md.edr'):
     fig, axs = plt.subplots(3, 1, figsize=(12, 15), sharex=True)
     
     # Plot 1: Potential energy
-    axs[0].plot(df['Time'], df['Potential'], 'b-')
+    axs[0].plot(df['Time (ps)'], df['Potential'], 'b-')
     axs[0].axhline(y=potential_mean, color='b', linestyle='--', alpha=0.5)
-    axs[0].fill_between(df['Time'], 
+    axs[0].fill_between(df['Time (ps)'], 
                        potential_mean - potential_std, 
                        potential_mean + potential_std, 
                        color='b', alpha=0.2)
@@ -386,9 +388,9 @@ def analyze_energy_components(edr_file='md.edr'):
     axs[0].grid(True, alpha=0.3)
     
     # Plot 2: Kinetic energy
-    axs[1].plot(df['Time'], df['Kinetic'], 'r-')
+    axs[1].plot(df['Time (ps)'], df['Kinetic'], 'r-')
     axs[1].axhline(y=kinetic_mean, color='r', linestyle='--', alpha=0.5)
-    axs[1].fill_between(df['Time'], 
+    axs[1].fill_between(df['Time (ps)'], 
                        kinetic_mean - kinetic_std, 
                        kinetic_mean + kinetic_std, 
                        color='r', alpha=0.2)
@@ -397,11 +399,11 @@ def analyze_energy_components(edr_file='md.edr'):
     axs[1].grid(True, alpha=0.3)
     
     # Plot 3: Total energy with drift analysis
-    axs[2].plot(df['Time'], df['Total'], 'g-')
-    axs[2].plot(df['Time'], drift_line, 'k--', alpha=0.7, 
+    axs[2].plot(df['Time (ps)'], df['Total'], 'g-')
+    axs[2].plot(df['Time (ps)'], drift_line, 'k--', alpha=0.7, 
                label=f'Drift: {drift_rate:.4f} kJ/mol/ns')
     axs[2].axhline(y=total_mean, color='g', linestyle='--', alpha=0.5)
-    axs[2].fill_between(df['Time'], 
+    axs[2].fill_between(df['Time (ps)'], 
                        total_mean - total_std, 
                        total_mean + total_std, 
                        color='g', alpha=0.2)
@@ -438,12 +440,12 @@ def analyze_energy_components(edr_file='md.edr'):
     detrended_total = df['Total'] - drift_line
     
     # Plot the detrended total energy
-    plt.plot(df['Time'], detrended_total, 'g-', label='Detrended Total Energy')
+    plt.plot(df['Time (ps)'], detrended_total, 'g-', label='Detrended Total Energy')
     plt.axhline(y=0, color='k', linestyle='--', alpha=0.5)
     
     # Add standard deviation bands
     detrended_std = np.std(detrended_total)
-    plt.fill_between(df['Time'], 
+    plt.fill_between(df['Time (ps)'], 
                     -detrended_std, 
                     detrended_std, 
                     color='g', alpha=0.2,
@@ -609,15 +611,13 @@ def create_enhanced_analysis_plots(energy_df, temp_df=None, pressure_df=None):
             ax4.plot(energy_df['Time (ps)'], energy_drift, 'g-')
             ax4.set_xlabel('Time (ps)')
             ax4.set_ylabel('Energy Drift (kJ/mol)')
-            ax4.set_title('Total Energy Drift')
+            ax4.setTitle('Total Energy Drift')
             ax4.grid(True, alpha=0.3)
             
             # Energy conservation
             ax5 = plt.subplot(gs[2, 1])
-            energy_conservation = (
-                np.abs(energy_df['Total-Energy'] - energy_df['Total-Energy'].iloc[0]) / 
-                np.abs(energy_df['Total-Energy'].iloc[0])
-            ) * 100  # In percent
+            energy_conservation = (np.abs(energy_df['Total-Energy'] - energy_df['Total-Energy'].iloc[0]) / 
+                                 np.abs(energy_df['Total-Energy'].iloc[0])) * 100  # In percent
             ax5.plot(energy_df['Time (ps)'], energy_conservation, 'g-')
             ax5.set_xlabel('Time (ps)')
             ax5.set_ylabel('Energy Drift (%)')
@@ -745,4 +745,4 @@ def main():
     print("Thermodynamic analysis complete!")
 
 if __name__ == '__main__':
-    main() 
+    main()
