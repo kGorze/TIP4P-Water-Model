@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 from utils import load_universe, save_plot
 import MDAnalysis as mda
 from MDAnalysis.analysis import rms
+from MDAnalysis.analysis import align
 
 def calculate_rmsd(universe, reference_frame=0, selection='all', n_frames=None):
     """
@@ -78,12 +79,13 @@ def calculate_rmsd(universe, reference_frame=0, selection='all', n_frames=None):
     # Limit the number of frames if specified
     if n_frames is not None:
         n_frames = min(n_frames, len(universe.trajectory))
-        frames = np.linspace(0, len(universe.trajectory)-1, n_frames, dtype=int)
+        frames = np.linspace(0, len(universe.trajectory)-1, n_frames, dtype=int).tolist()
     else:
         frames = range(len(universe.trajectory))
     
-    for ts in universe.trajectory[frames]:
-        time_array.append(ts.time)
+    for frame_idx in frames:
+        universe.trajectory[frame_idx]
+        time_array.append(universe.trajectory.time)
         rmsd_array.append(rms.rmsd(atoms.positions, reference_coords, superposition=True))
     
     time_array = np.array(time_array)
@@ -354,7 +356,7 @@ def calculate_rmsf(universe, selection='name OW', start_frame=None, n_frames=Non
     n_frames : int or None
         Number of frames to analyze (None = all frames)
     """
-    from MDAnalysis.analysis import rms
+    from MDAnalysis.analysis import align
     
     # Select atoms
     selected_atoms = universe.select_atoms(selection)
@@ -369,25 +371,34 @@ def calculate_rmsf(universe, selection='name OW', start_frame=None, n_frames=Non
     else:
         end_frame = min(start_frame + n_frames, len(universe.trajectory))
     
-    # Calculate average structure
-    # First align to the first frame
-    aligner = rms.AlignTraj(universe, universe, select=selection, 
-                           in_memory=True).run(start=start_frame, stop=end_frame)
+    # Create a reference structure (first frame)
+    universe.trajectory[start_frame]
+    reference = universe.select_atoms(selection)
+    ref_coordinates = reference.positions.copy()
     
-    # Then calculate average positions
+    # Calculate average structure through iterative alignment
     avg_pos = np.zeros((len(selected_atoms), 3))
     n_frames_used = 0
     
+    # First pass: align to first frame and accumulate positions
     for ts in universe.trajectory[start_frame:end_frame]:
+        # Align current frame to reference
+        align.alignto(selected_atoms, reference, weights="mass")
         avg_pos += selected_atoms.positions
         n_frames_used += 1
     
+    # Calculate average positions
     avg_pos /= n_frames_used
     
-    # Calculate RMSF
+    # Second pass: align to average and calculate RMSF
     rmsf = np.zeros(len(selected_atoms))
     
+    # Reset to start frame
+    universe.trajectory[start_frame]
+    
     for ts in universe.trajectory[start_frame:end_frame]:
+        # Align to reference again
+        align.alignto(selected_atoms, reference, weights="mass")
         # Calculate distance from average position
         delta = selected_atoms.positions - avg_pos
         rmsf += np.sum(delta**2, axis=1)
@@ -414,43 +425,239 @@ def calculate_rmsf(universe, selection='name OW', start_frame=None, n_frames=Non
     
     return rmsf
 
+def calculate_rmsd_multi(universes, phase_frames=None, phase_names=None):
+    """
+    Calculate RMSD for multiple trajectories
+    
+    Parameters:
+    -----------
+    universes : list of (MDAnalysis.Universe, int, int)
+        List of (universe, start_frame, end_frame) tuples for each trajectory
+    phase_frames : list of int
+        Number of frames in each phase
+    phase_names : list of str
+        Names of each phase
+        
+    Returns:
+    --------
+    tuple
+        (all_times, all_rmsd) - arrays containing time and RMSD values
+    """
+    # Initialize arrays to store all RMSD values and times
+    all_rmsd = []
+    all_times = []
+    
+    # Track cumulative time
+    cumulative_time = 0.0
+    
+    # Define phase durations in ns (adjust these values as needed)
+    phase_durations = [0.1, 3.0, 3.0, 5.0]  # EM, NVT, NPT, MD in ns
+    
+    # Process each universe
+    for i, (universe, start_frame, end_frame) in enumerate(universes):
+        phase_name = phase_names[i] if phase_names and i < len(phase_names) else f"Phase {i+1}"
+        print(f"Processing {phase_name} trajectory...")
+        
+        # Calculate RMSD for this phase
+        time_array, rmsd_array = calculate_rmsd(
+            universe=universe,
+            reference_frame=0,  # Use first frame of each phase as reference
+            selection='name OW'  # Use water oxygens
+        )
+        
+        # Get phase duration
+        if i < len(phase_durations):
+            phase_duration = phase_durations[i]
+        else:
+            phase_duration = 1.0  # Default 1 ns if not specified
+            
+        # Adjust times to be continuous across phases
+        n_frames = len(time_array)
+        if n_frames > 1:
+            phase_times = np.linspace(cumulative_time, 
+                                    cumulative_time + phase_duration, 
+                                    n_frames)
+        else:
+            phase_times = [cumulative_time]
+            
+        # Update cumulative time for next phase
+        cumulative_time += phase_duration
+        
+        # Add to overall arrays
+        all_rmsd.extend(rmsd_array)
+        all_times.extend(phase_times)
+        
+        print(f"  Added {len(rmsd_array)} frames")
+    
+    # Convert to numpy arrays
+    all_times = np.array(all_times)
+    all_rmsd = np.array(all_rmsd)
+    
+    # Calculate statistics
+    mean_rmsd = np.mean(all_rmsd)
+    std_rmsd = np.std(all_rmsd)
+    
+    # Create enhanced plot
+    plt.figure(figsize=(12, 7))
+    
+    # Plot RMSD
+    plt.plot(all_times, all_rmsd, color='blue', linewidth=1.5, label='RMSD')
+    
+    # Add mean line
+    plt.axhline(mean_rmsd, color='red', linestyle='dashed', 
+                linewidth=2, label=f'Mean: {mean_rmsd:.2f} Å')
+    
+    # Add standard deviation bands
+    plt.axhline(mean_rmsd + std_rmsd, color='red', linestyle='dotted', linewidth=1)
+    plt.axhline(mean_rmsd - std_rmsd, color='red', linestyle='dotted', linewidth=1)
+    plt.fill_between(all_times, mean_rmsd - std_rmsd, mean_rmsd + std_rmsd, 
+                    color='red', alpha=0.1, label=f'±1σ: {std_rmsd:.2f} Å')
+    
+    # Add phase boundaries if provided
+    if phase_names:
+        current_time = 0
+        for i, phase_name in enumerate(phase_names):
+            if i < len(phase_durations):
+                phase_duration = phase_durations[i]
+                # Add vertical line at phase boundary
+                if i > 0:  # Don't add line before first phase
+                    plt.axvline(current_time, color='black', linestyle='-', alpha=0.5)
+                
+                # Add phase label
+                plt.text(current_time + phase_duration/2, plt.ylim()[1] * 0.95,
+                        phase_name, horizontalalignment='center',
+                        bbox=dict(facecolor='white', alpha=0.7))
+                
+                current_time += phase_duration
+    
+    # Add statistics text box
+    stats_text = (
+        f"Mean RMSD: {mean_rmsd:.2f} Å\n"
+        f"Std Dev: {std_rmsd:.2f} Å\n"
+        f"Min RMSD: {np.min(all_rmsd):.2f} Å\n"
+        f"Max RMSD: {np.max(all_rmsd):.2f} Å"
+    )
+    
+    plt.text(0.97, 0.97, stats_text, transform=plt.gca().transAxes,
+            verticalalignment='top', horizontalalignment='right',
+            bbox=dict(facecolor='white', edgecolor='gray', alpha=0.9, 
+                     boxstyle='round,pad=0.4'),
+            fontsize=10)
+    
+    # Improve axis labels and title
+    plt.xlabel('Simulation Time (ns)', fontsize=12)
+    plt.ylabel('RMSD (Å)', fontsize=12)
+    plt.title('TIP4P Water RMSD vs. Time', fontsize=14)
+    
+    # Add grid and legend
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.legend(loc='upper left')
+    
+    # Save plot
+    save_plot(plt, 'rmsd_combined_plot.png')
+    
+    return all_times, all_rmsd
+
 def main():
     # Get command line arguments if provided
-    if len(sys.argv) > 2:
-        tpr_file = sys.argv[1]
-        trajectory_file = sys.argv[2]
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Analyze RMSD from GROMACS trajectories')
+    parser.add_argument('--tpr', nargs='+', default=['em.tpr', 'nvt.tpr', 'npt.tpr', 'md.tpr'],
+                        help='TPR files for each simulation phase')
+    parser.add_argument('--trj', nargs='+', default=['em.trr', 'nvt.trr', 'npt.trr', 'md.trr'],
+                        help='Trajectory files for each simulation phase')
+    parser.add_argument('--phases', nargs='+', default=['EM', 'NVT', 'NPT', 'MD'],
+                        help='Names of simulation phases')
+    parser.add_argument('--start-frames', nargs='+', type=int, 
+                        help='Starting frame for each phase')
+    parser.add_argument('--end-frames', nargs='+', type=int,
+                        help='Ending frame for each phase')
+    parser.add_argument('--single-phase', action='store_true',
+                        help='Analyze only a single phase (md.tpr and md.xtc)')
+    parser.add_argument('--frames', type=int, default=None,
+                        help='Number of frames to analyze (None = all frames)')
+    
+    args = parser.parse_args()
+    
+    # If single-phase flag is set or using traditional command line format
+    if args.single_phase or len(sys.argv) == 3:
+        if len(sys.argv) == 3:
+            tpr_file = sys.argv[1]
+            trajectory_file = sys.argv[2]
+        else:
+            tpr_file = 'md.tpr'
+            trajectory_file = 'md.xtc'
+        
+        print(f"Analyzing single phase with {tpr_file} and {trajectory_file}")
+        
+        # Load the trajectory
+        universe = load_universe(tpr_file, trajectory_file)
+        
+        # Calculate RMSD
+        print("Calculating RMSD...")
+        time_array, rmsd_array = calculate_rmsd(
+            universe, 
+            reference_frame=0,
+            selection='name OW'  # Only use oxygen atoms
+        )
+        
+        # Detect equilibration
+        print("Detecting equilibration...")
+        equilibration_time, equilibration_index = detect_equilibration(
+            time_array, 
+            rmsd_array,
+            window_size=100
+        )
+        
+        print(f"System equilibrated at {equilibration_time:.2f} ps (frame {equilibration_index})")
+        
+        # Calculate RMSF using the equilibrated part of the trajectory
+        print("Calculating RMSF...")
+        rmsf = calculate_rmsf(
+            universe,
+            selection='name OW',
+            start_frame=equilibration_index
+        )
     else:
-        tpr_file = 'md.tpr'
-        trajectory_file = 'md.xtc'
-    
-    # Load the trajectory
-    universe = load_universe(tpr_file, trajectory_file)
-    
-    # Calculate RMSD
-    print("Calculating RMSD...")
-    time_array, rmsd_array = calculate_rmsd(
-        universe, 
-        reference_frame=0,
-        selection='name OW'  # Only use oxygen atoms
-    )
-    
-    # Detect equilibration
-    print("Detecting equilibration...")
-    equilibration_time, equilibration_index = detect_equilibration(
-        time_array, 
-        rmsd_array,
-        window_size=100
-    )
-    
-    print(f"System equilibrated at {equilibration_time:.2f} ps (frame {equilibration_index})")
-    
-    # Calculate RMSF using the equilibrated part of the trajectory
-    print("Calculating RMSF...")
-    rmsf = calculate_rmsf(
-        universe,
-        selection='name OW',
-        start_frame=equilibration_index
-    )
+        # Multi-phase analysis
+        # Ensure the number of TPR files, trajectory files, and phase names match
+        if len(args.tpr) != len(args.trj) or (args.phases and len(args.tpr) != len(args.phases)):
+            print("Error: Number of TPR files, trajectory files, and phase names must match")
+            sys.exit(1)
+        
+        # Convert start and end frames to lists of integers if provided
+        start_frames = args.start_frames if args.start_frames else [0] * len(args.tpr)
+        end_frames = args.end_frames if args.end_frames else [None] * len(args.tpr)
+        
+        print(f"Analyzing {len(args.tpr)} phases: {', '.join(args.phases)}")
+        
+        # Load trajectories
+        from utils import load_combined_universe
+        universes, frame_counts = load_combined_universe(
+            tpr_files=args.tpr,
+            trajectory_files=args.trj,
+            start_frames=start_frames,
+            end_frames=end_frames
+        )
+        
+        # Calculate RMSD for all phases
+        print("Calculating RMSD across all phases...")
+        all_times, all_rmsd = calculate_rmsd_multi(
+            universes=universes,
+            phase_frames=frame_counts,
+            phase_names=args.phases
+        )
+        
+        # For RMSF analysis, use only the last phase (MD)
+        print("Calculating RMSF using MD phase...")
+        universe, start_frame, end_frame = universes[-1]
+        rmsf = calculate_rmsf(
+            universe,
+            selection='name OW',
+            start_frame=start_frame,
+            n_frames=args.frames
+        )
     
     print("RMSD analysis complete!")
 
