@@ -1,7 +1,0 @@
-; TIP4P/Ice non-bonded parameters
-
-[ atomtypes ]
-; name   mass      charge  ptype   sigma     epsilon
-IW       0.000     0.000   D       0.0       0.0
-OWT4     15.9994   0.000   A       0.31668   0.88211
-HW       1.008     0.000   A       0.00000   0.00000 

@@ -1,0 +1,44 @@
+RMSD Statistics Comparison
+=========================
+
+Statistical Significance (p-values from t-test):
+-----------------------------------------------
+tip4p_273K vs tip4p_298K: p=0.000027 ***
+tip4p_273K vs iteration_5_TIP4P: p=0.292455 ns
+tip4p_298K vs iteration_5_TIP4P: p=0.001940 **
+
+System: tip4p_273K
+  Equilibration Time: 250.0 ps
+  Mean RMSD: 37.931581 Å
+  Std Deviation: 1.127631 Å
+  Min RMSD: 31.779861 Å
+  Max RMSD: 38.659745 Å
+  Sample Count: 476
+  Relative Fluctuation: 2.97%
+
+System: tip4p_298K
+  Equilibration Time: 130.0 ps
+  Mean RMSD: 38.208627 Å
+  Std Deviation: 0.892880 Å
+  Min RMSD: 31.837390 Å
+  Max RMSD: 38.733794 Å
+  Sample Count: 488
+  Relative Fluctuation: 2.34%
+
+System: iteration_5_TIP4P
+  Equilibration Time: 250.0 ps
+  Mean RMSD: 38.007668 Å
+  Std Deviation: 1.100960 Å
+  Min RMSD: 32.252243 Å
+  Max RMSD: 38.625484 Å
+  Sample Count: 476
+  Relative Fluctuation: 2.90%
+
+
+Note about RMSD Interpretation:
+-----------------------------
+RMSD measures structural deviation from a reference structure (first frame).
+Lower RMSD values indicate structures closer to the reference.
+Equilibration is detected when RMSD fluctuations stabilize.
+For water systems, RMSD primarily reflects diffusion and reorganization of water molecules.
+Differences between systems may indicate varying degrees of structural stability or mobility.

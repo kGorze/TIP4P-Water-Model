@@ -1,0 +1,10 @@
+# Hydrogen Bond Lifetime Statistics
+# Mean lifetime: 3.2812 ps
+# Median lifetime: 1.8617 ps
+# Standard deviation: 3.3717 ps
+# Minimum lifetime: 0.0243 ps
+# Maximum lifetime: 10.9601 ps
+# 25th percentile: 0.9210 ps
+# 75th percentile: 4.8830 ps
+# Number of hydrogen bonds analyzed: 29
+# Intermittency allowed: 1 frames

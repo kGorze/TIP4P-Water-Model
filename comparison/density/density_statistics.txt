@@ -1,0 +1,36 @@
+Density Statistics Comparison
+============================
+
+Statistical Significance (p-values from t-test):
+-----------------------------------------------
+tip4p_273K vs tip4p_298K: p=0.000000 ***
+tip4p_273K vs iteration_5_TIP4P: p=0.374541 ns
+tip4p_298K vs iteration_5_TIP4P: p=0.000000 ***
+
+System: iteration_5_TIP4P
+  Mean Density: 1.0045 g/cm³
+  Std Deviation: 0.0046 g/cm³
+  Min Density: 0.9921 g/cm³
+  Max Density: 1.0171 g/cm³
+  Sample Count: 501
+  Experimental Value: 0.997 g/cm³
+  Deviation from Experimental: 0.7495%
+
+System: tip4p_273K
+  Mean Density: 1.0042 g/cm³
+  Std Deviation: 0.0050 g/cm³
+  Min Density: 0.9914 g/cm³
+  Max Density: 1.0174 g/cm³
+  Sample Count: 501
+  Experimental Value: 0.9998 g/cm³
+  Deviation from Experimental: 0.4403%
+
+System: tip4p_298K
+  Mean Density: 0.9942 g/cm³
+  Std Deviation: 0.0051 g/cm³
+  Min Density: 0.9765 g/cm³
+  Max Density: 1.0096 g/cm³
+  Sample Count: 501
+  Experimental Value: 0.997 g/cm³
+  Deviation from Experimental: -0.2840%
+

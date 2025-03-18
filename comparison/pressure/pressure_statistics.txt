@@ -1,0 +1,49 @@
+Pressure Statistics Comparison
+=============================
+
+Statistical Significance (p-values from t-test):
+-----------------------------------------------
+tip4p_273K vs tip4p_298K: p=0.162640 ns
+tip4p_273K vs iteration_5_TIP4P: p=0.299196 ns
+tip4p_298K vs iteration_5_TIP4P: p=0.723563 ns
+
+System: iteration_5_TIP4P
+  Mean Pressure: 0.0714 bar
+  Std Deviation: 207.8630 bar
+  Min Pressure: -575.4874 bar
+  Max Pressure: 652.6212 bar
+  Sample Count: 501
+  Target Pressure: 1.0 bar
+  Deviation from Target: -0.9286 bar
+  Relative Deviation: -92.8576%
+  Relative Fluctuation: 291025.49%
+
+System: tip4p_273K
+  Mean Pressure: -13.4606 bar
+  Std Deviation: 204.5127 bar
+  Min Pressure: -729.2659 bar
+  Max Pressure: 486.8563 bar
+  Sample Count: 501
+  Target Pressure: 1.0 bar
+  Deviation from Target: -14.4606 bar
+  Relative Deviation: -1446.0621%
+  Relative Fluctuation: 1519.34%
+
+System: tip4p_298K
+  Mean Pressure: 4.7096 bar
+  Std Deviation: 207.1134 bar
+  Min Pressure: -574.9438 bar
+  Max Pressure: 588.6793 bar
+  Sample Count: 501
+  Target Pressure: 1.0 bar
+  Deviation from Target: 3.7096 bar
+  Relative Deviation: 370.9621%
+  Relative Fluctuation: 4397.67%
+
+
+Note about Pressure Fluctuations in NPT Simulations:
+------------------------------------------------
+Large pressure fluctuations are normal in NPT simulations, especially for small systems.
+The fluctuations scale as 1/√N, where N is the number of particles.
+Only the average pressure should converge to the target pressure (1.0 bar).
+Standard deviations of hundreds or thousands of bar are typical for water systems.
