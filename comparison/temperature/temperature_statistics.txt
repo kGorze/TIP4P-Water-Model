@@ -4,18 +4,8 @@ Temperature Statistics Comparison
 Statistical Significance (p-values from t-test):
 -----------------------------------------------
 tip4p_273K vs tip4p_298K: p=0.000000 ***
-tip4p_273K vs iteration_5_TIP4P: p=0.913322 ns
-tip4p_298K vs iteration_5_TIP4P: p=0.000000 ***
-
-System: iteration_5_TIP4P
-  Mean Temperature: 273.1164 K
-  Std Deviation: 2.0964 K
-  Min Temperature: 266.7134 K
-  Max Temperature: 278.7419 K
-  Sample Count: 501
-  Target Temperature: 273.15 K
-  Deviation from Target: -0.0336 K
-  Relative Deviation: -0.0123%
+tip4p_273K vs tip4p_273K_compressability: p=0.913322 ns
+tip4p_298K vs tip4p_273K_compressability: p=0.000000 ***
 
 System: tip4p_273K
   Mean Temperature: 273.1021 K
@@ -26,6 +16,16 @@ System: tip4p_273K
   Target Temperature: 273.15 K
   Deviation from Target: -0.0479 K
   Relative Deviation: -0.0176%
+
+System: tip4p_273K_compressability
+  Mean Temperature: 273.1164 K
+  Std Deviation: 2.0964 K
+  Min Temperature: 266.7134 K
+  Max Temperature: 278.7419 K
+  Sample Count: 501
+  Target Temperature: 273.15 K
+  Deviation from Target: -0.0336 K
+  Relative Deviation: -0.0123%
 
 System: tip4p_298K
   Mean Temperature: 297.9828 K

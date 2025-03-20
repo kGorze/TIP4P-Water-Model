@@ -24,14 +24,16 @@ os.makedirs(comparison_dir, exist_ok=True)
 COLOR_MAP = {
     "tip4p_273K": "#1f77b4",      # Blue
     "tip4p_298K": "#ff7f0e",      # Orange
-    "iteration_5_TIP4P": "#2ca02c" # Green
+    "iteration_5_TIP4P": "#2ca02c", # Green - Keep directory name as-is in the color map
+    "tip4p_273K_compressability": "#2ca02c" # Green - Also add display name to the color map
 }
 
 # Target temperature values (K)
 TARGET_TEMPERATURES = {
     "tip4p_273K": 273.15,      # 0°C
     "tip4p_298K": 298.15,      # 25°C
-    "iteration_5_TIP4P": 273.15  # Assuming same as 298K
+    "iteration_5_TIP4P": 273.15,  # Original directory name
+    "tip4p_273K_compressability": 273.15  # Display name
 }
 
 def load_temperature_data(directory):
@@ -72,8 +74,16 @@ def load_temperature_data(directory):
             
             # Check if the data has the expected format
             if 'Time (ps)' in data.columns and 'Temperature' in data.columns:
-                # Add directory name as a label
-                data['System'] = os.path.basename(directory)
+                # Convert time from ps to ns
+                data['Time (ns)'] = data['Time (ps)'] / 1000.0
+                
+                # Add directory name as a label, but rename iteration_5_TIP4P for display
+                system_name = os.path.basename(directory)
+                if system_name == "iteration_5_TIP4P":
+                    data['System'] = "tip4p_273K_compressability"
+                else:
+                    data['System'] = system_name
+                
                 return data, temp_stats
         except Exception as e:
             print(f"Error loading temperature data from {data_file}: {e}")
@@ -93,7 +103,17 @@ def load_temperature_data(directory):
             temp_data = parse_edr_file(edr_file, properties=['Temperature'])
             if 'Temperature' in temp_data and temp_data['Temperature'] is not None:
                 data = temp_data['Temperature']
-                data['System'] = os.path.basename(directory)
+                
+                # Convert time from ps to ns
+                data['Time (ns)'] = data['Time (ps)'] / 1000.0
+                
+                # Rename iteration_5_TIP4P for display
+                system_name = os.path.basename(directory)
+                if system_name == "iteration_5_TIP4P":
+                    data['System'] = "tip4p_273K_compressability"
+                else:
+                    data['System'] = system_name
+                
                 return data, temp_stats
     except Exception as e:
         print(f"Error extracting temperature data from EDR file: {e}")
@@ -177,30 +197,41 @@ def main():
         'figure.dpi': 100,
     })
     
-    # Get unique systems in the order they appear in directories
-    systems = [sys for sys in directories if sys in combined_data['System'].unique()]
+    # Get unique systems from the combined data
+    systems = combined_data['System'].unique().tolist()
+    
+    # Ensure the systems are in the same order as the directories
+    ordered_systems = []
+    for dir_name in directories:
+        if dir_name == "iteration_5_TIP4P":
+            ordered_systems.append("tip4p_273K_compressability")
+        else:
+            ordered_systems.append(dir_name)
+    
+    # Make sure all systems are in combined_data
+    systems = [sys for sys in ordered_systems if sys in combined_data['System'].unique()]
     
     # Plot 1: Temperature vs Time for all systems
     fig, ax = plt.subplots(figsize=(12, 8))
     
-    # Add vertical grid lines at major time intervals (every 1000 ps)
-    ax.xaxis.set_major_locator(MultipleLocator(1000))
+    # Add vertical grid lines at major time intervals (converted from 1000 ps to 1 ns)
+    ax.xaxis.set_major_locator(MultipleLocator(1))
     ax.grid(True, which='major', axis='both', linestyle='--', alpha=0.7)
     
     # Plot raw data
     for system in systems:
         system_data = combined_data[combined_data['System'] == system]
-        ax.plot(system_data['Time (ps)'], system_data['Temperature'], 
+        ax.plot(system_data['Time (ns)'], system_data['Temperature'], 
                 label=system, color=COLOR_MAP[system], alpha=0.5, linewidth=1)
     
     # Add smoothed trend lines
     for system in systems:
         system_data = combined_data[combined_data['System'] == system]
         # Sort by time to ensure proper running average
-        system_data = system_data.sort_values('Time (ps)')
+        system_data = system_data.sort_values('Time (ns)')
         # Calculate running average
         smooth_time, smooth_temp = calculate_running_average(
-            system_data['Time (ps)'].values, system_data['Temperature'].values, window=100)
+            system_data['Time (ns)'].values, system_data['Temperature'].values, window=100)
         ax.plot(smooth_time, smooth_temp, color=COLOR_MAP[system], 
                 linewidth=2.5, alpha=0.8, linestyle='-')
     
@@ -208,62 +239,16 @@ def main():
     for system in systems:
         if system in TARGET_TEMPERATURES:
             ax.axhline(y=TARGET_TEMPERATURES[system], color=COLOR_MAP[system], 
-                      linestyle='--', alpha=0.7, linewidth=1.5)
+                      linestyle='--', alpha=0.5, linewidth=1)
     
-    # Add annotations for target temperatures
-    legend_elements = []
-    for system in systems:
-        if system in TARGET_TEMPERATURES:
-            legend_elements.append(
-                Patch(facecolor='none', edgecolor=COLOR_MAP[system], linestyle='--',
-                      label=f"{system} (Target: {TARGET_TEMPERATURES[system]:.2f} K)")
-            )
+    # Create a clean, bold legend
+    legend = ax.legend(title="System", loc='upper right', framealpha=0.9, fontsize=12)
+    plt.setp(legend.get_title(), fontweight='bold')
+    plt.setp(legend.get_texts(), fontweight='bold')
     
-    # Create a second legend for target temperatures
-    if legend_elements:
-        second_legend = ax.legend(handles=legend_elements, loc='lower right', 
-                                 title="Target Temperatures", framealpha=0.7)
-        ax.add_artist(second_legend)
-    
-    # Add primary legend for simulation data
-    ax.legend(title="Simulation Data", loc='upper right', framealpha=0.7)
-    
-    ax.set_xlabel('Time (ps)', fontweight='bold')
-    ax.set_ylabel('Temperature (K)', fontweight='bold')
-    ax.set_title('Water Temperature Comparison Over Time', fontsize=14, fontweight='bold')
-    
-    # Add an inset to zoom in on a region of interest
-    # Find a good region to zoom in - last 20% of the simulation
-    time_max = combined_data['Time (ps)'].max()
-    zoom_start = time_max * 0.8
-    
-    # Create inset axes with proper parameters
-    axins = ax.inset_axes([0.15, 0.15, 0.3, 0.3])
-    
-    # Add subtle background shading to the inset
-    axins.patch.set_facecolor('lightgray')
-    axins.patch.set_alpha(0.1)
-    
-    # Add a border to the inset
-    for spine in axins.spines.values():
-        spine.set_edgecolor('black')
-        spine.set_linewidth(1.5)
-    
-    # Plot data in the inset
-    for system in systems:
-        system_data = combined_data[combined_data['System'] == system]
-        zoom_data = system_data[system_data['Time (ps)'] >= zoom_start]
-        axins.plot(zoom_data['Time (ps)'], zoom_data['Temperature'], 
-                  color=COLOR_MAP[system], linewidth=1.5)
-    
-    axins.set_title('Last 20% of Simulation', fontsize=10, fontweight='bold')
-    axins.grid(True, linestyle='--', alpha=0.5)
-    
-    # Add annotation to highlight the inset with a more prominent arrow
-    ax.annotate('Zoomed region', xy=(zoom_start, combined_data['Temperature'].min()),
-               xytext=(zoom_start * 0.7, combined_data['Temperature'].min()),
-               arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=10),
-               fontsize=11, fontweight='bold')
+    ax.set_xlabel('Time (ns)', fontweight='bold', fontsize=12)
+    ax.set_ylabel('Temperature (K)', fontweight='bold', fontsize=12)
+    ax.set_title('Temperature Comparison', fontsize=14, fontweight='bold')
     
     plt.tight_layout()
     plt.savefig(os.path.join(comparison_dir, 'temperature_comparison.png'), dpi=300)
@@ -277,40 +262,20 @@ def main():
         sns.kdeplot(system_data['Temperature'], label=system, fill=True, 
                    alpha=0.3, color=COLOR_MAP[system], ax=ax)
         
-        # Add vertical line for target temperature
+        # Add vertical line for target temperature (more subtle)
         if system in TARGET_TEMPERATURES:
             ax.axvline(x=TARGET_TEMPERATURES[system], color=COLOR_MAP[system], 
-                      linestyle='--', alpha=0.7, linewidth=1.5)
-            
-            # Add annotation for target temperature
-            ax.annotate(f"Target: {TARGET_TEMPERATURES[system]:.2f} K", 
-                       xy=(TARGET_TEMPERATURES[system], 0), 
-                       xytext=(TARGET_TEMPERATURES[system], 1),
-                       rotation=90, ha='right', va='bottom',
-                       color=COLOR_MAP[system], fontsize=10)
+                      linestyle='--', alpha=0.5, linewidth=1)
     
-    ax.set_xlabel('Temperature (K)', fontweight='bold')
-    ax.set_ylabel('Probability Density', fontweight='bold')
-    ax.set_title('Water Temperature Distribution Comparison', fontsize=14, fontweight='bold')
-    ax.legend(title="System", loc='upper right', framealpha=0.7)
+    # Create a clean, bold legend
+    legend = ax.legend(title="System", loc='upper right', framealpha=0.9, fontsize=12)
+    plt.setp(legend.get_title(), fontweight='bold')
+    plt.setp(legend.get_texts(), fontweight='bold')
+    
+    ax.set_xlabel('Temperature (K)', fontweight='bold', fontsize=12)
+    ax.set_ylabel('Probability Density', fontweight='bold', fontsize=12)
+    ax.set_title('Temperature Distribution', fontsize=14, fontweight='bold')
     ax.grid(True, linestyle='--', alpha=0.7)
-    
-    # Add text with statistical information
-    stats_text = ""
-    for system in systems:
-        system_data = combined_data[combined_data['System'] == system]
-        mean = system_data['Temperature'].mean()
-        std = system_data['Temperature'].std()
-        target = TARGET_TEMPERATURES.get(system, "N/A")
-        if target != "N/A":
-            deviation = mean - target
-            stats_text += f"{system}: {mean:.2f} ± {std:.2f} K (Δ from target: {deviation:.2f} K)\n"
-        else:
-            stats_text += f"{system}: {mean:.2f} ± {std:.2f} K\n"
-    
-    ax.text(0.02, 0.98, stats_text, transform=ax.transAxes, 
-           verticalalignment='top', horizontalalignment='left',
-           bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
     
     plt.tight_layout()
     plt.savefig(os.path.join(comparison_dir, 'temperature_distribution_comparison.png'), dpi=300)
@@ -332,34 +297,16 @@ def main():
     sns.stripplot(x='System', y='Temperature', data=combined_data, ax=ax,
                  size=4, color='black', alpha=0.3, jitter=True)
     
-    # Add significance bars
-    max_temp = combined_data['Temperature'].max()
-    add_significance_bars(ax, combined_data, systems, max_temp * 1.01)
-    
-    # Add target temperature lines
+    # Add target temperature lines (more subtle)
     for i, system in enumerate(systems):
         if system in TARGET_TEMPERATURES:
             ax.hlines(y=TARGET_TEMPERATURES[system], xmin=i-0.4, xmax=i+0.4, 
-                     colors=COLOR_MAP[system], linestyles='dashed', linewidth=2, alpha=0.7)
-            ax.text(i, TARGET_TEMPERATURES[system] - 0.5, 
-                   f"Target: {TARGET_TEMPERATURES[system]:.2f} K", 
-                   ha='center', va='top', fontsize=9, 
-                   bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.7))
+                     colors=COLOR_MAP[system], linestyles='dashed', linewidth=1, alpha=0.5)
     
-    ax.set_xlabel('System', fontweight='bold')
-    ax.set_ylabel('Temperature (K)', fontweight='bold')
+    ax.set_xlabel('System', fontweight='bold', fontsize=12)
+    ax.set_ylabel('Temperature (K)', fontweight='bold', fontsize=12)
     ax.set_title('Temperature Distribution by System', fontsize=14, fontweight='bold')
     ax.grid(True, axis='y', linestyle='--', alpha=0.7)
-    
-    # Add legend for significance
-    legend_elements = [
-        Patch(facecolor='none', edgecolor='black', label='* p < 0.05'),
-        Patch(facecolor='none', edgecolor='black', label='** p < 0.01'),
-        Patch(facecolor='none', edgecolor='black', label='*** p < 0.001'),
-        Patch(facecolor='none', edgecolor='black', label='ns: not significant')
-    ]
-    ax.legend(handles=legend_elements, loc='upper right', 
-             title="Statistical Significance", framealpha=0.7)
     
     plt.tight_layout()
     plt.savefig(os.path.join(comparison_dir, 'temperature_boxplot.png'), dpi=300)
@@ -399,28 +346,29 @@ def main():
                    bar_width, label='Relative Std (%)', alpha=0.7, color='orange')
     
     # Add labels and title
-    ax.set_xlabel('System', fontweight='bold')
-    ax.set_ylabel('Standard Deviation (K)', fontweight='bold')
-    ax2.set_ylabel('Relative Standard Deviation (%)', fontweight='bold')
-    ax.set_title('Temperature Fluctuations Comparison', fontsize=14, fontweight='bold')
+    ax.set_xlabel('System', fontweight='bold', fontsize=12)
+    ax.set_ylabel('Standard Deviation (K)', fontweight='bold', fontsize=12)
+    ax2.set_ylabel('Relative Standard Deviation (%)', fontweight='bold', fontsize=12)
+    ax.set_title('Temperature Fluctuations', fontsize=14, fontweight='bold')
     
     # Set x-tick labels
     ax.set_xticks(bar_positions)
-    ax.set_xticklabels(systems)
+    ax.set_xticklabels(systems, fontweight='bold')
     
-    # Add a legend
-    ax.legend(handles=[bars1, bars2], loc='upper left')
+    # Add a legend with bold text
+    legend = ax.legend(handles=[bars1, bars2], loc='upper left')
+    plt.setp(legend.get_texts(), fontweight='bold')
     
     # Add value labels on bars
     for i, bar in enumerate(bars1):
         height = bar.get_height()
         ax.text(bar.get_x() + bar.get_width()/2., height + 0.05,
-               f'{height:.2f} K', ha='center', va='bottom', fontsize=9)
+               f'{height:.2f}', ha='center', va='bottom', fontweight='bold', fontsize=9)
     
     for i, bar in enumerate(bars2):
         height = bar.get_height()
         ax2.text(bar.get_x() + bar.get_width()/2., height + 0.05,
-                f'{height:.2f}%', ha='center', va='bottom', fontsize=9)
+                f'{height:.2f}%', ha='center', va='bottom', fontweight='bold', fontsize=9)
     
     plt.tight_layout()
     plt.savefig(os.path.join(comparison_dir, 'temperature_fluctuations.png'), dpi=300)

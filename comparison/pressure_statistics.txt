@@ -1,0 +1,49 @@
+Pressure Statistics Comparison
+=============================
+
+Statistical Significance (p-values from t-test):
+-----------------------------------------------
+tip4p_273K vs tip4p_298K: p=0.162640 ns
+tip4p_273K vs tip4p_273K_compressability: p=0.299196 ns
+tip4p_298K vs tip4p_273K_compressability: p=0.723563 ns
+
+System: tip4p_273K
+  Mean Pressure: -13.2846 atm
+  Std Deviation: 201.8383 atm
+  Min Pressure: -719.7293 atm
+  Max Pressure: 480.4897 atm
+  Sample Count: 501
+  Target Pressure: 0.986923 atm
+  Deviation from Target: -14.2715 atm
+  Relative Deviation: -1446.0621%
+  Relative Fluctuation: 1519.34%
+
+System: tip4p_273K_compressability
+  Mean Pressure: 0.0705 atm
+  Std Deviation: 205.1448 atm
+  Min Pressure: -567.9617 atm
+  Max Pressure: 644.0868 atm
+  Sample Count: 501
+  Target Pressure: 0.986923 atm
+  Deviation from Target: -0.9164 atm
+  Relative Deviation: -92.8576%
+  Relative Fluctuation: 291025.49%
+
+System: tip4p_298K
+  Mean Pressure: 4.6480 atm
+  Std Deviation: 204.4050 atm
+  Min Pressure: -567.4253 atm
+  Max Pressure: 580.9811 atm
+  Sample Count: 501
+  Target Pressure: 0.986923 atm
+  Deviation from Target: 3.6611 atm
+  Relative Deviation: 370.9621%
+  Relative Fluctuation: 4397.67%
+
+
+Note about Pressure Fluctuations in NPT Simulations:
+------------------------------------------------
+Large pressure fluctuations are normal in NPT simulations, especially for small systems.
+The fluctuations scale as 1/√N, where N is the number of particles.
+Only the average pressure should converge to the target pressure (0.987 atm).
+Standard deviations of hundreds of atm are typical for water systems.

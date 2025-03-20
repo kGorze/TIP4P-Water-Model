@@ -8,12 +8,13 @@ import seaborn as sns
 from matplotlib.patches import Patch
 from scipy import stats as scipy_stats
 from matplotlib.ticker import MultipleLocator
+import matplotlib.font_manager as fm
 
 # Define directories to compare
 directories = [
     "tip4p_273K",
     "tip4p_298K",
-    "iteration_5_TIP4P"
+    "iteration_5_TIP4P"  # Changed back to the actual directory name
 ]
 
 # Create comparison directory if it doesn't exist
@@ -24,11 +25,17 @@ os.makedirs(comparison_dir, exist_ok=True)
 COLOR_MAP = {
     "tip4p_273K": "#1f77b4",      # Blue
     "tip4p_298K": "#ff7f0e",      # Orange
-    "iteration_5_TIP4P": "#2ca02c" # Green
+    "iteration_5_TIP4P": "#2ca02c", # Green - Keep directory name as-is in the color map
+    "tip4p_273K_compressability": "#2ca02c" # Green - Also add the display name to the color map
 }
 
 # Energy components to analyze
 ENERGY_COMPONENTS = ['Potential', 'Kinetic', 'Total-Energy']
+
+# Set up fonts for plots
+plt.rcParams['font.family'] = 'Times New Roman'
+plt.rcParams['font.weight'] = 'bold'
+plt.rcParams['legend.fontsize'] = 12
 
 def load_energy_data(directory):
     """Load energy data from a directory's analysis folder."""
@@ -68,8 +75,16 @@ def load_energy_data(directory):
             # Check if the data has the expected format
             expected_columns = ['Time (ps)', 'Potential', 'Kinetic', 'Total']
             if all(col in data.columns for col in expected_columns):
-                # Add directory name as a label
-                data['System'] = os.path.basename(directory)
+                # Convert time from ps to ns
+                data['Time (ns)'] = data['Time (ps)'] / 1000.0
+                
+                # Add directory name as a label, but rename iteration_5_TIP4P for display
+                system_name = os.path.basename(directory)
+                if system_name == "iteration_5_TIP4P":
+                    data['System'] = "tip4p_273K_compressability"
+                else:
+                    data['System'] = system_name
+                
                 return data, energy_stats
         except Exception as e:
             print(f"Error loading energy data from {data_path}: {e}")
@@ -97,8 +112,16 @@ def load_energy_data(directory):
                     'Total': energy_data['Total-Energy']['Total-Energy']
                 })
                 
-                # Add directory name as a label
-                data['System'] = os.path.basename(directory)
+                # Convert time from ps to ns
+                data['Time (ns)'] = data['Time (ps)'] / 1000.0
+                
+                # Add directory name as a label, but rename iteration_5_TIP4P for display
+                system_name = os.path.basename(directory)
+                if system_name == "iteration_5_TIP4P":
+                    data['System'] = "tip4p_273K_compressability"
+                else:
+                    data['System'] = system_name
+                
                 return data, energy_stats
     except Exception as e:
         print(f"Error extracting energy data from EDR file: {e}")
@@ -123,79 +146,38 @@ def plot_energy_component_comparison(combined_data, systems, component, output_f
     """Plot comparison of a specific energy component across systems."""
     fig, ax = plt.subplots(figsize=(12, 8))
     
-    # Add vertical grid lines at major time intervals (every 1000 ps)
-    ax.xaxis.set_major_locator(MultipleLocator(1000))
+    # Add vertical grid lines at major time intervals (every 1 ns)
+    ax.xaxis.set_major_locator(MultipleLocator(1))
     ax.grid(True, which='major', axis='both', linestyle='--', alpha=0.7)
     
     # Plot raw data with low alpha for clarity
     for system in systems:
         system_data = combined_data[combined_data['System'] == system]
-        ax.plot(system_data['Time (ps)'], system_data[component], 
+        ax.plot(system_data['Time (ns)'], system_data[component], 
                 label=system, color=COLOR_MAP[system], alpha=0.3, linewidth=0.5)
     
     # Add smoothed trend lines
     for system in systems:
         system_data = combined_data[combined_data['System'] == system]
         # Sort by time to ensure proper running average
-        system_data = system_data.sort_values('Time (ps)')
+        system_data = system_data.sort_values('Time (ns)')
         # Calculate running average
         smooth_time, smooth_energy = calculate_running_average(
-            system_data['Time (ps)'].values, system_data[component].values, window=100)
+            system_data['Time (ns)'].values, system_data[component].values, window=100)
         ax.plot(smooth_time, smooth_energy, color=COLOR_MAP[system], 
                 linewidth=2.5, alpha=0.8, linestyle='-')
     
-    # Add legend
-    ax.legend(title="System", loc='best', framealpha=0.7)
+    # Add legend with improved visibility
+    legend = ax.legend(title="System", loc='upper right', framealpha=0.9, 
+                     fontsize=12, title_fontsize=12)
+    plt.setp(legend.get_title(), fontweight='bold')
     
-    ax.set_xlabel('Time (ps)', fontweight='bold')
-    ax.set_ylabel(f'{component} Energy (kJ/mol)', fontweight='bold')
-    ax.set_title(f'{component} Energy Comparison Over Time', fontsize=14, fontweight='bold')
+    # Set labels and title
+    ax.set_xlabel('Time (ns)', fontweight='bold', fontsize=12)
+    ax.set_ylabel(f'{component} Energy (kJ/mol)', fontweight='bold', fontsize=12)
+    ax.set_title(f'{component} Energy', fontsize=14, fontweight='bold')
     
-    # Add an inset to zoom in on a region of interest
-    # Find a good region to zoom in - last 20% of the simulation
-    time_max = combined_data['Time (ps)'].max()
-    zoom_start = time_max * 0.8
-    
-    # Create inset axes with proper parameters
-    axins = ax.inset_axes([0.15, 0.15, 0.3, 0.3])
-    
-    # Add subtle background shading to the inset
-    axins.patch.set_facecolor('lightgray')
-    axins.patch.set_alpha(0.1)
-    
-    # Add a border to the inset
-    for spine in axins.spines.values():
-        spine.set_edgecolor('black')
-        spine.set_linewidth(1.5)
-    
-    # Plot data in the inset
-    for system in systems:
-        system_data = combined_data[combined_data['System'] == system]
-        zoom_data = system_data[system_data['Time (ps)'] >= zoom_start]
-        axins.plot(zoom_data['Time (ps)'], zoom_data[component], 
-                  color=COLOR_MAP[system], linewidth=1.5)
-    
-    axins.set_title('Last 20% of Simulation', fontsize=10, fontweight='bold')
-    axins.grid(True, linestyle='--', alpha=0.5)
-    
-    # Add annotation to highlight the inset with a more prominent arrow
-    y_min = combined_data[component].min()
-    ax.annotate('Zoomed region', xy=(zoom_start, y_min),
-               xytext=(zoom_start * 0.7, y_min),
-               arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=10),
-               fontsize=11, fontweight='bold')
-    
-    # Add text with statistical information
-    stats_text = ""
-    for system in systems:
-        system_data = combined_data[combined_data['System'] == system]
-        mean = system_data[component].mean()
-        std = system_data[component].std()
-        stats_text += f"{system}: {mean:.2f} ± {std:.2f} kJ/mol\n"
-    
-    ax.text(0.02, 0.98, stats_text, transform=ax.transAxes, 
-           verticalalignment='top', horizontalalignment='left',
-           bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+    # Remove the inset and all unnecessary text
     
     plt.tight_layout()
     plt.savefig(output_file, dpi=300)
@@ -214,18 +196,15 @@ def plot_energy_distribution_comparison(combined_data, systems, component, outpu
         mean_energy = system_data[component].mean()
         ax.axvline(x=mean_energy, color=COLOR_MAP[system], 
                   linestyle='-', alpha=0.7, linewidth=1.5)
-        
-        # Add annotation for mean energy
-        ax.annotate(f"Mean: {mean_energy:.2f} kJ/mol", 
-                   xy=(mean_energy, 0), 
-                   xytext=(mean_energy, 0.0001),
-                   rotation=90, ha='right', va='bottom',
-                   color=COLOR_MAP[system], fontsize=10)
     
-    ax.set_xlabel(f'{component} Energy (kJ/mol)', fontweight='bold')
-    ax.set_ylabel('Probability Density', fontweight='bold')
-    ax.set_title(f'{component} Energy Distribution Comparison', fontsize=14, fontweight='bold')
-    ax.legend(title="System", loc='best', framealpha=0.7)
+    # Add legend with improved visibility
+    legend = ax.legend(title="System", loc='upper right', framealpha=0.9,
+                     fontsize=12, title_fontsize=12)
+    plt.setp(legend.get_title(), fontweight='bold')
+    
+    ax.set_xlabel(f'{component} Energy (kJ/mol)', fontweight='bold', fontsize=12)
+    ax.set_ylabel('Probability Density', fontweight='bold', fontsize=12)
+    ax.set_title(f'{component} Energy Distribution', fontsize=14, fontweight='bold')
     ax.grid(True, linestyle='--', alpha=0.7)
     
     plt.tight_layout()
@@ -236,52 +215,45 @@ def plot_energy_conservation(combined_data, systems, output_file):
     """Plot energy conservation (drift) comparison across systems."""
     fig, ax = plt.subplots(figsize=(12, 8))
     
-    # Add vertical grid lines at major time intervals (every 1000 ps)
-    ax.xaxis.set_major_locator(MultipleLocator(1000))
+    # Add vertical grid lines at major time intervals (every 1 ns)
+    ax.xaxis.set_major_locator(MultipleLocator(1))
     ax.grid(True, which='major', axis='both', linestyle='--', alpha=0.7)
     
     # Calculate and plot energy drift for each system
     for system in systems:
         system_data = combined_data[combined_data['System'] == system]
         # Sort by time
-        system_data = system_data.sort_values('Time (ps)')
+        system_data = system_data.sort_values('Time (ns)')
         
         # Calculate drift as deviation from initial total energy
         if len(system_data) > 0:
-            time = system_data['Time (ps)'].values
+            time = system_data['Time (ns)'].values
             total_energy = system_data['Total'].values
             initial_energy = total_energy[0]
             drift = total_energy - initial_energy
             
-            # Convert time to ns for drift calculation
-            time_ns = time / 1000
-            
             # Linear regression to find the slope (drift rate)
-            slope, intercept, r_value, p_value, std_err = scipy_stats.linregress(time_ns, total_energy)
+            slope, intercept, r_value, p_value, std_err = scipy_stats.linregress(time, total_energy)
             
             # Plot drift
             ax.plot(time, drift, color=COLOR_MAP[system], alpha=0.3, linewidth=0.5)
             
             # Plot drift trend line
-            drift_line = (intercept - initial_energy) + slope * time_ns
+            drift_line = (intercept - initial_energy) + slope * time
             ax.plot(time, drift_line, color=COLOR_MAP[system], 
                     linewidth=2, alpha=0.8, linestyle='-',
                     label=f"{system}: {slope:.4f} kJ/mol/ns")
     
     ax.axhline(y=0, color='black', linestyle='--', alpha=0.5)
     
-    ax.set_xlabel('Time (ps)', fontweight='bold')
-    ax.set_ylabel('Energy Drift (kJ/mol)', fontweight='bold')
-    ax.set_title('Energy Conservation Comparison', fontsize=14, fontweight='bold')
-    ax.legend(title="Drift Rate", loc='best', framealpha=0.7)
+    ax.set_xlabel('Time (ns)', fontweight='bold', fontsize=12)
+    ax.set_ylabel('Energy Drift (kJ/mol)', fontweight='bold', fontsize=12)
+    ax.set_title('Energy Conservation', fontsize=14, fontweight='bold')
     
-    # Add annotation about energy conservation
-    ax.text(0.02, 0.02, 
-           "Note: Good energy conservation is indicated by minimal drift.\n"
-           "The slope of the trend line represents the drift rate in kJ/mol/ns.",
-           transform=ax.transAxes, 
-           verticalalignment='bottom', horizontalalignment='left',
-           bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+    # Add legend with improved visibility
+    legend = ax.legend(title="Drift Rate", loc='upper right', framealpha=0.9,
+                     fontsize=12, title_fontsize=12)
+    plt.setp(legend.get_title(), fontweight='bold')
     
     plt.tight_layout()
     plt.savefig(output_file, dpi=300)
@@ -299,25 +271,24 @@ def plot_energy_fluctuations(combined_data, systems, output_file):
         ax = axs[i]
         
         # Add vertical grid lines
-        ax.xaxis.set_major_locator(MultipleLocator(1000))
+        ax.xaxis.set_major_locator(MultipleLocator(1))
         ax.grid(True, which='major', axis='both', linestyle='--', alpha=0.7)
         
         # Calculate and plot fluctuations for each system
         for system in systems:
             system_data = combined_data[combined_data['System'] == system]
             # Sort by time
-            system_data = system_data.sort_values('Time (ps)')
+            system_data = system_data.sort_values('Time (ns)')
             
             if len(system_data) > 0:
-                time = system_data['Time (ps)'].values
+                time = system_data['Time (ns)'].values
                 energy = system_data[component].values
                 
                 # For total energy, detrend to show fluctuations around the drift line
                 if component == 'Total':
                     # Calculate drift line
-                    time_ns = time / 1000
-                    slope, intercept, _, _, _ = scipy_stats.linregress(time_ns, energy)
-                    drift_line = intercept + slope * time_ns
+                    slope, intercept, _, _, _ = scipy_stats.linregress(time, energy)
+                    drift_line = intercept + slope * time
                     # Detrend
                     energy = energy - drift_line
                 
@@ -343,14 +314,15 @@ def plot_energy_fluctuations(combined_data, systems, output_file):
                     ax.plot([], [], color=COLOR_MAP[system], linewidth=2, 
                            label=f"{system}: σ = {std:.2f} kJ/mol")
         
-        ax.set_ylabel('Fluctuation (kJ/mol)', fontweight='bold')
-        ax.set_title(title, fontsize=12, fontweight='bold')
+        ax.set_ylabel('Fluctuation (kJ/mol)', fontweight='bold', fontsize=12)
+        ax.set_title(title, fontsize=14, fontweight='bold')
         
         if i == 0:  # Only add legend to first subplot
-            ax.legend(title="Standard Deviation", loc='upper right', framealpha=0.7)
+            legend = ax.legend(loc='upper right', framealpha=0.9, fontsize=12)
+            plt.setp(legend.get_texts(), fontweight='bold')
     
     # Set common x label
-    axs[2].set_xlabel('Time (ps)', fontweight='bold')
+    axs[2].set_xlabel('Time (ns)', fontweight='bold', fontsize=12)
     
     plt.tight_layout()
     plt.savefig(output_file, dpi=300)
@@ -370,10 +342,10 @@ def plot_energy_components_stacked(combined_data, systems, output_file):
         system_data = combined_data[combined_data['System'] == system]
         
         # Sort by time
-        system_data = system_data.sort_values('Time (ps)')
+        system_data = system_data.sort_values('Time (ns)')
         
         if len(system_data) > 0:
-            time = system_data['Time (ps)'].values
+            time = system_data['Time (ns)'].values
             potential = system_data['Potential'].values
             kinetic = system_data['Kinetic'].values
             total = system_data['Total'].values
@@ -392,23 +364,15 @@ def plot_energy_components_stacked(combined_data, systems, output_file):
             ax.grid(True, linestyle='--', alpha=0.7)
             
             # Add title and legend
-            ax.set_title(f'{system} Energy Components', fontsize=12, fontweight='bold')
-            ax.legend(loc='upper right')
-            
-            # Add text with statistics
-            stats_text = (f"Potential: {np.mean(potential):.2f} ± {np.std(potential):.2f} kJ/mol\n"
-                         f"Kinetic: {np.mean(kinetic):.2f} ± {np.std(kinetic):.2f} kJ/mol\n"
-                         f"Total: {np.mean(total):.2f} ± {np.std(total):.2f} kJ/mol")
-            
-            ax.text(0.02, 0.95, stats_text, transform=ax.transAxes, 
-                   verticalalignment='top', horizontalalignment='left',
-                   bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+            ax.set_title(f'{system}', fontsize=14, fontweight='bold')
+            legend = ax.legend(loc='upper right', framealpha=0.9, fontsize=12)
+            plt.setp(legend.get_texts(), fontweight='bold')
             
             # Set y-label
-            ax.set_ylabel('Energy (kJ/mol)', fontweight='bold')
+            ax.set_ylabel('Energy (kJ/mol)', fontweight='bold', fontsize=12)
     
     # Set common x-label
-    axs[-1].set_xlabel('Time (ps)', fontweight='bold')
+    axs[-1].set_xlabel('Time (ns)', fontweight='bold', fontsize=12)
     
     plt.tight_layout()
     plt.savefig(output_file, dpi=300)
@@ -440,14 +404,25 @@ def main():
     sns.set_style("whitegrid")
     plt.rcParams.update({
         'font.size': 12,
-        'font.family': 'sans-serif',
-        'font.sans-serif': ['Arial', 'DejaVu Sans'],
+        'font.family': 'Times New Roman',
+        'font.weight': 'bold',
         'figure.figsize': (12, 8),
         'figure.dpi': 100,
     })
     
-    # Get unique systems in the order they appear in directories
-    systems = [sys for sys in directories if sys in combined_data['System'].unique()]
+    # Get unique systems from the combined data
+    systems = combined_data['System'].unique().tolist()
+    
+    # Ensure the systems are in the same order as the directories
+    ordered_systems = []
+    for dir_name in directories:
+        if dir_name == "iteration_5_TIP4P":
+            ordered_systems.append("tip4p_273K_compressability")
+        else:
+            ordered_systems.append(dir_name)
+    
+    # Make sure all systems are in combined_data
+    systems = [sys for sys in ordered_systems if sys in combined_data['System'].unique()]
     
     # Plot 1: Potential energy comparison
     plot_energy_component_comparison(
@@ -519,17 +494,14 @@ def main():
     for system in systems:
         system_data = combined_data[combined_data['System'] == system]
         # Sort by time
-        system_data = system_data.sort_values('Time (ps)')
+        system_data = system_data.sort_values('Time (ns)')
         
         if len(system_data) > 0:
-            time = system_data['Time (ps)'].values
+            time = system_data['Time (ns)'].values
             total_energy = system_data['Total'].values
             
-            # Convert time to ns for drift calculation
-            time_ns = time / 1000
-            
             # Linear regression to find the slope (drift rate)
-            slope, intercept, r_value, p_value, std_err = scipy_stats.linregress(time_ns, total_energy)
+            slope, intercept, r_value, p_value, std_err = scipy_stats.linregress(time, total_energy)
             
             # Calculate relative drift
             mean_energy = np.mean(total_energy)

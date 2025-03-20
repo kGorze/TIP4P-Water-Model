@@ -15,7 +15,7 @@ System: tip4p_298K
   Relative Drift: -0.013226%/ns
   Energy Conservation Quality: Good
 
-System: iteration_5_TIP4P
+System: tip4p_273K_compressability
   Drift Rate: 21.446536 kJ/mol/ns
   R-squared: 0.003125
   Relative Drift: 0.010744%/ns
@@ -24,14 +24,6 @@ System: iteration_5_TIP4P
 
 Potential Energy Statistics:
 ----------------------------
-System: iteration_5_TIP4P
-  Mean: -237088.4205 kJ/mol
-  Std Deviation: 488.4741 kJ/mol
-  Min: -238327.6562 kJ/mol
-  Max: -235776.1875 kJ/mol
-  Sample Count: 501
-  Relative Fluctuation: 0.21%
-
 System: tip4p_273K
   Mean: -237033.8045 kJ/mol
   Std Deviation: 477.7073 kJ/mol
@@ -39,6 +31,14 @@ System: tip4p_273K
   Max: -235835.4375 kJ/mol
   Sample Count: 501
   Relative Fluctuation: 0.20%
+
+System: tip4p_273K_compressability
+  Mean: -237088.4205 kJ/mol
+  Std Deviation: 488.4741 kJ/mol
+  Min: -238327.6562 kJ/mol
+  Max: -235776.1875 kJ/mol
+  Sample Count: 501
+  Relative Fluctuation: 0.21%
 
 System: tip4p_298K
   Mean: -228131.1523 kJ/mol
@@ -51,14 +51,6 @@ System: tip4p_298K
 
 Kinetic Energy Statistics:
 --------------------------
-System: iteration_5_TIP4P
-  Mean: 37465.0559 kJ/mol
-  Std Deviation: 287.5707 kJ/mol
-  Min: 36586.7188 kJ/mol
-  Max: 38236.7461 kJ/mol
-  Sample Count: 501
-  Relative Fluctuation: 0.77%
-
 System: tip4p_273K
   Mean: 37463.0912 kJ/mol
   Std Deviation: 283.6206 kJ/mol
@@ -66,6 +58,14 @@ System: tip4p_273K
   Max: 38252.3203 kJ/mol
   Sample Count: 501
   Relative Fluctuation: 0.76%
+
+System: tip4p_273K_compressability
+  Mean: 37465.0559 kJ/mol
+  Std Deviation: 287.5707 kJ/mol
+  Min: 36586.7188 kJ/mol
+  Max: 38236.7461 kJ/mol
+  Sample Count: 501
+  Relative Fluctuation: 0.77%
 
 System: tip4p_298K
   Mean: 40876.1417 kJ/mol
@@ -78,19 +78,19 @@ System: tip4p_298K
 
 Total Energy Statistics:
 ------------------------
-System: iteration_5_TIP4P
-  Mean: -199623.3650 kJ/mol
-  Std Deviation: 555.4131 kJ/mol
-  Min: -201185.7188 kJ/mol
-  Max: -198086.6875 kJ/mol
-  Sample Count: 501
-  Relative Fluctuation: 0.28%
-
 System: tip4p_273K
   Mean: -199570.7133 kJ/mol
   Std Deviation: 561.1318 kJ/mol
   Min: -200926.2656 kJ/mol
   Max: -198020.5000 kJ/mol
+  Sample Count: 501
+  Relative Fluctuation: 0.28%
+
+System: tip4p_273K_compressability
+  Mean: -199623.3650 kJ/mol
+  Std Deviation: 555.4131 kJ/mol
+  Min: -201185.7188 kJ/mol
+  Max: -198086.6875 kJ/mol
   Sample Count: 501
   Relative Fluctuation: 0.28%
 
