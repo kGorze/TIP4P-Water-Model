@@ -628,10 +628,7 @@ def plot_entropy_analysis(data, profiles, output_file='entropy_analysis.png'):
     ) * 1.2  # Add a little headroom
     
     # 1. Temperature analysis: Free energy vs enthalpy
-    # Create temperature x-grid for smoother plotting
     t_centers = profiles['temperature']['centers']
-    min_temp, max_temp = t_centers.min(), t_centers.max()
-    # Add markers at key thermodynamic points
     min_F_idx = np.argmin(profiles['temperature']['free_energy'])
     min_F_temp = t_centers[min_F_idx]
     max_S_idx = np.argmax(profiles['temperature']['entropy_profile'])
@@ -655,12 +652,12 @@ def plot_entropy_analysis(data, profiles, output_file='entropy_analysis.png'):
             profiles['temperature']['free_energy_clipped'] + profiles['temperature']['uncertainty'],
             color='blue', alpha=0.15)
     
-    # Highlight key points
+    # Add key points without text annotations
     ax1.scatter([min_F_temp], [profiles['temperature']['free_energy'][min_F_idx]], 
                s=80, color='blue', marker='o', edgecolors='white', zorder=5,
                label='Min Free Energy')
     
-    # Highlight regions of favorable entropy
+    # Highlight regions of favorable entropy - simplified
     favorable_regions = profiles['temperature']['entropy_favorable']
     if np.any(favorable_regions):
         for i in range(len(favorable_regions)-1):
@@ -720,35 +717,7 @@ def plot_entropy_analysis(data, profiles, output_file='entropy_analysis.png'):
     ax2.set_ylim(-max_entropy_scale, max_entropy_scale)
     ax2.legend(loc='best', fontsize=10)
     
-    # Annotate physical meaning in temperature plots
-    phase_annotations = []
-    
-    # Look for temperature regions that might correspond to different phases
-    # This is just a simple heuristic based on energy minima
-    f_diffs = np.diff(profiles['temperature']['free_energy'])
-    potential_phase_boundaries = []
-    for i in range(1, len(f_diffs)):
-        if f_diffs[i-1] < 0 and f_diffs[i] > 0:  # Local minimum in F
-            potential_phase_boundaries.append(i)
-    
-    # Add phase annotations if we found potential phases
-    if len(potential_phase_boundaries) > 0:
-        # Add shading for potential phases
-        for i, pb in enumerate(potential_phase_boundaries):
-            t_val = t_centers[pb]
-            if i % 2 == 0:
-                phase_label = "Potential\nSolid Phase" if t_val < target_temp else "Potential\nLiquid Phase"
-            else:
-                phase_label = "Potential\nLiquid Phase" if t_val < target_temp else "Potential\nGas Phase"
-                
-            ax1.annotate(phase_label, (t_val, 0.2 * max_energy_T),
-                        xytext=(0, -30), textcoords='offset points',
-                        ha='center', va='top', fontsize=10,
-                        bbox=dict(boxstyle="round,pad=0.3", fc="white", alpha=0.7))
-            phase_annotations.append((t_val, phase_label))
-    
     # 3. Pressure analysis: Free energy vs enthalpy
-    # Create pressure x-grid for smoother plotting
     p_centers = profiles['pressure']['centers']
     
     # Add markers at key thermodynamic points
@@ -841,56 +810,16 @@ def plot_entropy_analysis(data, profiles, output_file='entropy_analysis.png'):
     ax4.set_ylim(-max_entropy_scale, max_entropy_scale)
     ax4.legend(loc='best', fontsize=10)
     
-    # Add annotations for pressure effects
-    # Regions of extreme pressure often have physical interpretations
-    # Identify regions of low/high pressure
-    p_mean = np.mean(p_centers)
-    if np.min(p_centers) < -50:  # Significant negative pressure
-        ax3.annotate("Negative Pressure\n(System Expansion)", 
-                    (np.min(p_centers) * 0.9, 0.8 * max_energy_P),
-                    xytext=(20, 0), textcoords='offset points', 
-                    ha='left', va='center', fontsize=10,
-                    arrowprops=dict(arrowstyle="->", color='black'),
-                    bbox=dict(boxstyle="round,pad=0.3", fc="white", alpha=0.7))
-    
-    if np.max(p_centers) > 50:  # Significant positive pressure
-        ax3.annotate("High Pressure\n(System Compression)", 
-                    (np.max(p_centers) * 0.9, 0.8 * max_energy_P),
-                    xytext=(-20, 0), textcoords='offset points', 
-                    ha='right', va='center', fontsize=10,
-                    arrowprops=dict(arrowstyle="->", color='black'),
-                    bbox=dict(boxstyle="round,pad=0.3", fc="white", alpha=0.7))
-    
-    # Add enhanced info text with thermodynamic relationships and physical interpretation
-    info_text = "Thermodynamic Relationships:\n"
-    info_text += "• F = H - TS  (Helmholtz free energy)\n"
-    info_text += "• H = U + PV  (Enthalpy)\n"
-    info_text += "• F = -kT ln(P)  (Statistical mechanics)\n\n"
-    info_text += "Physical Interpretation:\n"
-    info_text += "• Regions with high TS (green shading) are entropically favored\n"
-    info_text += "• Minimum in F indicates thermodynamically stable states\n"
-    info_text += "• Entropy-enthalpy compensation occurs where F remains flat\n"
-    info_text += "  despite changes in TS and H\n"
-    info_text += f"• T = {profiles['avg_temp']:.1f}K, Pressure = {np.mean(p_centers):.1f} atm (average values)"
-    
-    # Create a separate info box with better positioning
-    prop = dict(boxstyle='round', facecolor='wheat', alpha=0.4)
-    fig.text(0.5, 0.01, info_text, fontsize=10, ha='center', va='bottom',
-            bbox=prop)
-    
     # Add title with entropy values
     title = 'Entropy Analysis from Simulation Data'
     if profiles['total_entropy']['temperature'] is not None:
         title += f' (Total S = {profiles["total_entropy"]["temperature"]:.4f} kcal/mol/K)'
     
-    plt.suptitle(title, fontsize=16, y=0.98)
-    plt.tight_layout(rect=[0, 0.05, 1, 0.95])  # Adjust for info text
+    plt.suptitle(title, fontsize=16)
+    plt.tight_layout()
     plt.savefig(output_file, dpi=300, bbox_inches='tight')
     print(f"\nEnhanced entropy analysis saved as: {output_file}")
     plt.close()
-    
-    # Create an additional plot specifically for entropy-enthalpy compensation
-    create_compensation_plot(profiles, output_file.replace('.png', '_compensation.png'))
 
 def create_compensation_plot(profiles, output_file):
     """Create a specialized plot showing entropy-enthalpy compensation effects.
@@ -959,19 +888,6 @@ def create_compensation_plot(profiles, output_file):
     ax1.annotate(f"Compensation Ratio: {compensation_ratio:.2f}", 
                 xy=(0.05, 0.95), xycoords='axes fraction',
                 bbox=dict(boxstyle="round,pad=0.3", fc="white", alpha=0.8),
-                fontsize=12, ha='left', va='top')
-    
-    # Add another annotation explaining compensation phenomenon
-    if abs(compensation_ratio) > 0.7:
-        explanation = "Strong entropy-enthalpy compensation observed"
-    elif abs(compensation_ratio) > 0.4:
-        explanation = "Moderate entropy-enthalpy compensation observed"
-    else:
-        explanation = "Weak entropy-enthalpy compensation observed"
-        
-    ax1.annotate(explanation,
-                xy=(0.05, 0.89), xycoords='axes fraction',
-                bbox=dict(boxstyle="round,pad=0.3", fc="wheat", alpha=0.8),
                 fontsize=12, ha='left', va='top')
     
     # Annotate points of interest
@@ -1071,11 +987,15 @@ def main():
     parser.add_argument('--smooth', type=float, default=1.0, help='Smoothing factor (0 to disable)')
     parser.add_argument('--clip_percentile', type=float, default=2.0, help='Percentile for clipping extreme values')
     parser.add_argument('--skip_plots', action='store_true', help='Skip generating plots (only calculate data)')
+    parser.add_argument('--edr_file', required=True, help='Path to the EDR file')
+    parser.add_argument('--tpr_file', required=True, help='Path to the TPR file')
     args = parser.parse_args()
     
     # Set paths based on args
     data_dir = args.input_dir
     output_dir = args.output_dir
+    edr_file = args.edr_file
+    tpr_file = args.tpr_file
     
     # Ensure output directory exists
     if not os.path.exists(output_dir):
@@ -1085,6 +1005,7 @@ def main():
     profiles_plot = os.path.join(output_dir, 'free_energy_profiles.png')
     landscape_plot = os.path.join(output_dir, 'free_energy_2d.png')
     entropy_plot = os.path.join(output_dir, 'entropy_analysis.png')
+    compensation_plot = os.path.join(output_dir, 'entropy_enthalpy_compensation.png')
     
     print("Reading energy data from GROMACS files...")
     data = run_gmx_energy(edr_file, tpr_file)
@@ -1097,16 +1018,19 @@ def main():
     print(f"Min: {np.min(data['Pressure']):.2f} atm, Max: {np.max(data['Pressure']):.2f} atm")
     print(f"Total number of data points: {len(data['Temperature'])}")
     
+    # Preprocess data for analysis
+    processed_data = preprocess_data(data, downsample_factor=5, filter_outliers=True, smooth=True)
+    
     print("\nCalculating free energy profiles with entropy decomposition...")
     
-    # Calculate free energy profiles with enhanced entropy analysis
+    # Calculate free energy profiles
     profiles = calculate_free_energy_profiles(
-        data, 
-        temp_bins=args.temp_bins, 
-        pres_bins=args.pres_bins,
-        bootstrap_samples=args.bootstrap,
-        smoothing_factor=args.smooth,
-        clip_percentile=args.clip_percentile
+        processed_data,
+        temperature_bins=args.temp_bins, 
+        pressure_bins=args.pres_bins,
+        smooth_sigma=args.smooth,
+        bootstrap=args.bootstrap > 0,
+        calculate_entropy=True
     )
     
     if args.skip_plots:
@@ -1115,15 +1039,19 @@ def main():
     
     print("\nCreating free energy profile plots...")
     # Create 1D free energy profile plots
-    plot_free_energy_profiles(data, profiles, output_file=profiles_plot)
+    plot_free_energy_profiles(processed_data, profiles, output_file=profiles_plot)
     
     print("\nCreating enhanced free energy landscape with entropy decomposition...")
     # Create 2D free energy landscape
-    plot_combined_free_energy(data, profiles, output_file=landscape_plot)
+    plot_combined_free_energy(processed_data, profiles, output_file=landscape_plot)
     
     print("\nCreating detailed entropy analysis...")
     # Create entropy analysis plots
-    plot_entropy_analysis(data, profiles, output_file=entropy_plot)
+    plot_entropy_analysis(processed_data, profiles, output_file=entropy_plot)
+    
+    print("\nCreating entropy-enthalpy compensation plot...")
+    # Create compensation plot
+    create_compensation_plot(profiles, output_file=compensation_plot)
     
     print("\nDone!")
 
