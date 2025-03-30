@@ -13,11 +13,6 @@ md_water_study_iteration_*/data/
 # Specifically ignore large file types
 *.xtc
 *.trr
-*.tpr
-*.edr
-*.cpt
-*.log
-*.ndx
 *.xvg
 
 # Ignore any file larger than 50MB

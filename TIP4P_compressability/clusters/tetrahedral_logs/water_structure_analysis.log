@@ -1,0 +1,391 @@
+2025-03-15 12:28:46,284 - water_structure_analysis - INFO - Używam plików: ../../tip4p_273K/md.tpr i ../../tip4p_273K/md.xtc
+2025-03-15 12:28:46,285 - MDAnalysis.topology.TPRparser - INFO - Gromacs version   : b'VERSION 2024.3'
+2025-03-15 12:28:46,285 - MDAnalysis.topology.TPRparser - INFO - tpx version       : 133
+2025-03-15 12:28:46,285 - MDAnalysis.topology.TPRparser - INFO - tpx generation    : 28
+2025-03-15 12:28:46,285 - MDAnalysis.topology.TPRparser - INFO - tpx precision     : 4
+2025-03-15 12:28:46,285 - MDAnalysis.topology.TPRparser - INFO - tpx file_tag      : b'release'
+2025-03-15 12:28:46,285 - MDAnalysis.topology.TPRparser - INFO - tpx natoms        : 22000
+2025-03-15 12:28:46,285 - MDAnalysis.topology.TPRparser - INFO - tpx ngtc          : 1
+2025-03-15 12:28:46,285 - MDAnalysis.topology.TPRparser - INFO - tpx fep_state     : 0
+2025-03-15 12:28:46,285 - MDAnalysis.topology.TPRparser - INFO - tpx lambda        : 0.0
+2025-03-15 12:28:46,385 - MDAnalysis.core.universe - INFO - The attribute(s) types, masses have already been read from the topology file. The guesser will only guess empty values for this attribute, if any exists. To overwrite it by completely guessed values, you can pass the attribute to the force_guess parameter instead of the to_guess one
+2025-03-15 12:28:46,386 - MDAnalysis.guesser.base - INFO - There is no empty types values. Guesser did not guess any new values for types attribute
+2025-03-15 12:28:46,386 - MDAnalysis.guesser.base - INFO - There is no empty masses values. Guesser did not guess any new values for masses attribute
+2025-03-15 12:28:46,386 - water_structure_analysis - INFO - Wczytano trajektorię w 0.10 sek.
+2025-03-15 12:28:46,389 - water_structure_analysis - INFO - Liczba atomów tlenu wody: 5500
+2025-03-15 12:28:46,389 - water_structure_analysis - INFO - Rozpoczynam złożoną analizę struktury wody...
+2025-03-15 12:28:46,389 - water_structure_analysis - INFO - --- [1] RDF Analysis ---
+2025-03-15 12:28:46,390 - water_structure_analysis - INFO - Obliczam RDF O–O...
+2025-03-15 12:28:46,391 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-15 12:28:46,391 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-15 12:29:57,907 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-15 12:29:58,594 - water_structure_analysis - INFO - Obliczam RDF O–H...
+2025-03-15 12:29:58,595 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-15 12:29:58,595 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-15 12:32:20,402 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-15 12:32:20,713 - water_structure_analysis - INFO - --- [2] H-bond Analysis ---
+2025-03-15 12:32:20,713 - water_structure_analysis - INFO - Rozpoczynam analizę wiązań wodorowych...
+2025-03-15 12:36:21,702 - water_structure_analysis - INFO - Używam plików: ../../tip4p_273K/md.tpr i ../../tip4p_273K/md.xtc
+2025-03-15 12:36:21,703 - MDAnalysis.topology.TPRparser - INFO - Gromacs version   : b'VERSION 2024.3'
+2025-03-15 12:36:21,703 - MDAnalysis.topology.TPRparser - INFO - tpx version       : 133
+2025-03-15 12:36:21,703 - MDAnalysis.topology.TPRparser - INFO - tpx generation    : 28
+2025-03-15 12:36:21,704 - MDAnalysis.topology.TPRparser - INFO - tpx precision     : 4
+2025-03-15 12:36:21,704 - MDAnalysis.topology.TPRparser - INFO - tpx file_tag      : b'release'
+2025-03-15 12:36:21,704 - MDAnalysis.topology.TPRparser - INFO - tpx natoms        : 22000
+2025-03-15 12:36:21,704 - MDAnalysis.topology.TPRparser - INFO - tpx ngtc          : 1
+2025-03-15 12:36:21,704 - MDAnalysis.topology.TPRparser - INFO - tpx fep_state     : 0
+2025-03-15 12:36:21,704 - MDAnalysis.topology.TPRparser - INFO - tpx lambda        : 0.0
+2025-03-15 12:36:21,801 - MDAnalysis.core.universe - INFO - The attribute(s) types, masses have already been read from the topology file. The guesser will only guess empty values for this attribute, if any exists. To overwrite it by completely guessed values, you can pass the attribute to the force_guess parameter instead of the to_guess one
+2025-03-15 12:36:21,805 - MDAnalysis.guesser.base - INFO - There is no empty types values. Guesser did not guess any new values for types attribute
+2025-03-15 12:36:21,805 - MDAnalysis.guesser.base - INFO - There is no empty masses values. Guesser did not guess any new values for masses attribute
+2025-03-15 12:36:21,805 - water_structure_analysis - INFO - Wczytano trajektorię w 0.10 sek.
+2025-03-15 12:36:21,808 - water_structure_analysis - INFO - Liczba atomów tlenu wody: 5500
+2025-03-15 12:36:21,808 - water_structure_analysis - INFO - Rozpoczynam złożoną analizę struktury wody...
+2025-03-15 12:36:21,808 - water_structure_analysis - INFO - --- [1] RDF Analysis ---
+2025-03-15 12:36:21,809 - water_structure_analysis - INFO - Obliczam RDF O–O...
+2025-03-15 12:36:21,810 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-15 12:36:21,810 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-15 12:37:32,625 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-15 12:37:33,262 - water_structure_analysis - INFO - Obliczam RDF O–H...
+2025-03-15 12:37:33,263 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-15 12:37:33,263 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-15 12:39:53,448 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-15 12:39:53,747 - water_structure_analysis - INFO - --- [2] H-bond Analysis ---
+2025-03-15 12:39:53,747 - water_structure_analysis - INFO - Rozpoczynam analizę wiązań wodorowych...
+2025-03-18 10:15:55,701 - water_structure_analysis - INFO - Używam plików: ../../tip4p_273K/md.tpr i ../../tip4p_273K/md.xtc
+2025-03-18 10:15:55,710 - MDAnalysis.topology.TPRparser - INFO - Gromacs version   : b'VERSION 2024.3'
+2025-03-18 10:15:55,710 - MDAnalysis.topology.TPRparser - INFO - tpx version       : 133
+2025-03-18 10:15:55,710 - MDAnalysis.topology.TPRparser - INFO - tpx generation    : 28
+2025-03-18 10:15:55,710 - MDAnalysis.topology.TPRparser - INFO - tpx precision     : 4
+2025-03-18 10:15:55,710 - MDAnalysis.topology.TPRparser - INFO - tpx file_tag      : b'release'
+2025-03-18 10:15:55,710 - MDAnalysis.topology.TPRparser - INFO - tpx natoms        : 22000
+2025-03-18 10:15:55,710 - MDAnalysis.topology.TPRparser - INFO - tpx ngtc          : 1
+2025-03-18 10:15:55,710 - MDAnalysis.topology.TPRparser - INFO - tpx fep_state     : 0
+2025-03-18 10:15:55,710 - MDAnalysis.topology.TPRparser - INFO - tpx lambda        : 0.0
+2025-03-18 10:15:55,780 - MDAnalysis.core.universe - INFO - The attribute(s) types, masses have already been read from the topology file. The guesser will only guess empty values for this attribute, if any exists. To overwrite it by completely guessed values, you can pass the attribute to the force_guess parameter instead of the to_guess one
+2025-03-18 10:15:55,781 - MDAnalysis.guesser.base - INFO - There is no empty types values. Guesser did not guess any new values for types attribute
+2025-03-18 10:15:55,781 - MDAnalysis.guesser.base - INFO - There is no empty masses values. Guesser did not guess any new values for masses attribute
+2025-03-18 10:15:55,781 - water_structure_analysis - INFO - Wczytano trajektorię w 0.07 sek.
+2025-03-18 10:15:55,784 - water_structure_analysis - INFO - Liczba atomów tlenu wody: 5500
+2025-03-18 10:15:55,784 - water_structure_analysis - INFO - Rozpoczynam złożoną analizę struktury wody...
+2025-03-18 10:15:55,784 - water_structure_analysis - INFO - --- [1] RDF Analysis ---
+2025-03-18 10:15:55,785 - water_structure_analysis - INFO - Obliczam RDF O–O...
+2025-03-18 10:15:55,785 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:15:55,786 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:16:49,984 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:16:50,416 - water_structure_analysis - INFO - Obliczam RDF O–H...
+2025-03-18 10:16:50,416 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:16:50,416 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:18:38,203 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:18:38,410 - water_structure_analysis - INFO - --- [2] H-bond Analysis ---
+2025-03-18 10:18:38,410 - water_structure_analysis - INFO - Rozpoczynam analizę wiązań wodorowych...
+2025-03-18 10:26:09,528 - water_structure_analysis - INFO - Używam plików: ../../tip4p_273K/md.tpr i ../../tip4p_273K/md.xtc
+2025-03-18 10:26:09,529 - MDAnalysis.topology.TPRparser - INFO - Gromacs version   : b'VERSION 2024.3'
+2025-03-18 10:26:09,529 - MDAnalysis.topology.TPRparser - INFO - tpx version       : 133
+2025-03-18 10:26:09,529 - MDAnalysis.topology.TPRparser - INFO - tpx generation    : 28
+2025-03-18 10:26:09,529 - MDAnalysis.topology.TPRparser - INFO - tpx precision     : 4
+2025-03-18 10:26:09,529 - MDAnalysis.topology.TPRparser - INFO - tpx file_tag      : b'release'
+2025-03-18 10:26:09,529 - MDAnalysis.topology.TPRparser - INFO - tpx natoms        : 22000
+2025-03-18 10:26:09,529 - MDAnalysis.topology.TPRparser - INFO - tpx ngtc          : 1
+2025-03-18 10:26:09,529 - MDAnalysis.topology.TPRparser - INFO - tpx fep_state     : 0
+2025-03-18 10:26:09,529 - MDAnalysis.topology.TPRparser - INFO - tpx lambda        : 0.0
+2025-03-18 10:26:09,602 - MDAnalysis.core.universe - INFO - The attribute(s) masses, types have already been read from the topology file. The guesser will only guess empty values for this attribute, if any exists. To overwrite it by completely guessed values, you can pass the attribute to the force_guess parameter instead of the to_guess one
+2025-03-18 10:26:09,603 - MDAnalysis.guesser.base - INFO - There is no empty types values. Guesser did not guess any new values for types attribute
+2025-03-18 10:26:09,603 - MDAnalysis.guesser.base - INFO - There is no empty masses values. Guesser did not guess any new values for masses attribute
+2025-03-18 10:26:09,603 - water_structure_analysis - INFO - Wczytano trajektorię w 0.08 sek.
+2025-03-18 10:26:09,606 - water_structure_analysis - INFO - Liczba atomów tlenu wody: 5500
+2025-03-18 10:26:09,606 - water_structure_analysis - INFO - Rozpoczynam złożoną analizę struktury wody...
+2025-03-18 10:26:09,606 - water_structure_analysis - INFO - --- [1] RDF Analysis ---
+2025-03-18 10:26:09,607 - water_structure_analysis - INFO - Obliczam RDF O–O...
+2025-03-18 10:26:09,608 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:26:09,608 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:27:07,178 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:27:07,638 - water_structure_analysis - INFO - Obliczam RDF O–H...
+2025-03-18 10:27:07,639 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:27:07,639 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:29:02,405 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:29:02,615 - water_structure_analysis - INFO - --- [2] H-bond Analysis ---
+2025-03-18 10:29:02,615 - water_structure_analysis - INFO - Rozpoczynam analizę wiązań wodorowych...
+2025-03-18 10:33:55,049 - water_structure_analysis - INFO - Używam plików: ../../tip4p_273K/md.tpr i ../../tip4p_273K/md.xtc
+2025-03-18 10:33:55,050 - MDAnalysis.topology.TPRparser - INFO - Gromacs version   : b'VERSION 2024.3'
+2025-03-18 10:33:55,050 - MDAnalysis.topology.TPRparser - INFO - tpx version       : 133
+2025-03-18 10:33:55,050 - MDAnalysis.topology.TPRparser - INFO - tpx generation    : 28
+2025-03-18 10:33:55,050 - MDAnalysis.topology.TPRparser - INFO - tpx precision     : 4
+2025-03-18 10:33:55,050 - MDAnalysis.topology.TPRparser - INFO - tpx file_tag      : b'release'
+2025-03-18 10:33:55,050 - MDAnalysis.topology.TPRparser - INFO - tpx natoms        : 22000
+2025-03-18 10:33:55,050 - MDAnalysis.topology.TPRparser - INFO - tpx ngtc          : 1
+2025-03-18 10:33:55,050 - MDAnalysis.topology.TPRparser - INFO - tpx fep_state     : 0
+2025-03-18 10:33:55,050 - MDAnalysis.topology.TPRparser - INFO - tpx lambda        : 0.0
+2025-03-18 10:33:55,122 - MDAnalysis.core.universe - INFO - The attribute(s) masses, types have already been read from the topology file. The guesser will only guess empty values for this attribute, if any exists. To overwrite it by completely guessed values, you can pass the attribute to the force_guess parameter instead of the to_guess one
+2025-03-18 10:33:55,123 - MDAnalysis.guesser.base - INFO - There is no empty types values. Guesser did not guess any new values for types attribute
+2025-03-18 10:33:55,123 - MDAnalysis.guesser.base - INFO - There is no empty masses values. Guesser did not guess any new values for masses attribute
+2025-03-18 10:33:55,123 - water_structure_analysis - INFO - Wczytano trajektorię w 0.07 sek.
+2025-03-18 10:33:55,126 - water_structure_analysis - INFO - Liczba atomów tlenu wody: 5500
+2025-03-18 10:33:55,126 - water_structure_analysis - INFO - Rozpoczynam złożoną analizę struktury wody...
+2025-03-18 10:33:55,126 - water_structure_analysis - INFO - --- [1] RDF Analysis ---
+2025-03-18 10:33:55,127 - water_structure_analysis - INFO - Obliczam RDF O–O...
+2025-03-18 10:33:55,128 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:33:55,128 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:34:50,190 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:34:50,633 - water_structure_analysis - INFO - Obliczam RDF O–H...
+2025-03-18 10:34:50,633 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:34:50,634 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:36:42,332 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:36:42,537 - water_structure_analysis - INFO - --- [2] H-bond Analysis ---
+2025-03-18 10:36:42,537 - water_structure_analysis - INFO - Rozpoczynam analizę wiązań wodorowych...
+2025-03-18 10:38:10,268 - water_structure_analysis - INFO - Używam plików: ../../tip4p_273K/md.tpr i ../../tip4p_273K/md.xtc
+2025-03-18 10:38:10,269 - MDAnalysis.topology.TPRparser - INFO - Gromacs version   : b'VERSION 2024.3'
+2025-03-18 10:38:10,270 - MDAnalysis.topology.TPRparser - INFO - tpx version       : 133
+2025-03-18 10:38:10,270 - MDAnalysis.topology.TPRparser - INFO - tpx generation    : 28
+2025-03-18 10:38:10,270 - MDAnalysis.topology.TPRparser - INFO - tpx precision     : 4
+2025-03-18 10:38:10,270 - MDAnalysis.topology.TPRparser - INFO - tpx file_tag      : b'release'
+2025-03-18 10:38:10,270 - MDAnalysis.topology.TPRparser - INFO - tpx natoms        : 22000
+2025-03-18 10:38:10,270 - MDAnalysis.topology.TPRparser - INFO - tpx ngtc          : 1
+2025-03-18 10:38:10,270 - MDAnalysis.topology.TPRparser - INFO - tpx fep_state     : 0
+2025-03-18 10:38:10,270 - MDAnalysis.topology.TPRparser - INFO - tpx lambda        : 0.0
+2025-03-18 10:38:10,347 - MDAnalysis.core.universe - INFO - The attribute(s) masses, types have already been read from the topology file. The guesser will only guess empty values for this attribute, if any exists. To overwrite it by completely guessed values, you can pass the attribute to the force_guess parameter instead of the to_guess one
+2025-03-18 10:38:10,348 - MDAnalysis.guesser.base - INFO - There is no empty types values. Guesser did not guess any new values for types attribute
+2025-03-18 10:38:10,348 - MDAnalysis.guesser.base - INFO - There is no empty masses values. Guesser did not guess any new values for masses attribute
+2025-03-18 10:38:10,348 - water_structure_analysis - INFO - Wczytano trajektorię w 0.08 sek.
+2025-03-18 10:38:10,351 - water_structure_analysis - INFO - Liczba atomów tlenu wody: 5500
+2025-03-18 10:38:10,351 - water_structure_analysis - INFO - Rozpoczynam złożoną analizę struktury wody...
+2025-03-18 10:38:10,351 - water_structure_analysis - INFO - --- [1] RDF Analysis ---
+2025-03-18 10:38:10,352 - water_structure_analysis - INFO - Obliczam RDF O–O...
+2025-03-18 10:38:10,352 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:38:10,353 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:39:05,948 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:39:06,395 - water_structure_analysis - INFO - Obliczam RDF O–H...
+2025-03-18 10:39:06,395 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:39:06,395 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:40:58,054 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:40:58,265 - water_structure_analysis - INFO - --- [2] H-bond Analysis ---
+2025-03-18 10:40:58,265 - water_structure_analysis - INFO - Rozpoczynam analizę wiązań wodorowych...
+2025-03-18 10:40:58,282 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:40:58,282 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:41:14,999 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:44:51,402 - water_structure_analysis - INFO - Używam plików: ../../tip4p_273K/md.tpr i ../../tip4p_273K/md.xtc
+2025-03-18 10:44:51,403 - MDAnalysis.topology.TPRparser - INFO - Gromacs version   : b'VERSION 2024.3'
+2025-03-18 10:44:51,403 - MDAnalysis.topology.TPRparser - INFO - tpx version       : 133
+2025-03-18 10:44:51,403 - MDAnalysis.topology.TPRparser - INFO - tpx generation    : 28
+2025-03-18 10:44:51,403 - MDAnalysis.topology.TPRparser - INFO - tpx precision     : 4
+2025-03-18 10:44:51,403 - MDAnalysis.topology.TPRparser - INFO - tpx file_tag      : b'release'
+2025-03-18 10:44:51,403 - MDAnalysis.topology.TPRparser - INFO - tpx natoms        : 22000
+2025-03-18 10:44:51,403 - MDAnalysis.topology.TPRparser - INFO - tpx ngtc          : 1
+2025-03-18 10:44:51,403 - MDAnalysis.topology.TPRparser - INFO - tpx fep_state     : 0
+2025-03-18 10:44:51,403 - MDAnalysis.topology.TPRparser - INFO - tpx lambda        : 0.0
+2025-03-18 10:44:51,476 - MDAnalysis.core.universe - INFO - The attribute(s) types, masses have already been read from the topology file. The guesser will only guess empty values for this attribute, if any exists. To overwrite it by completely guessed values, you can pass the attribute to the force_guess parameter instead of the to_guess one
+2025-03-18 10:44:51,477 - MDAnalysis.guesser.base - INFO - There is no empty types values. Guesser did not guess any new values for types attribute
+2025-03-18 10:44:51,477 - MDAnalysis.guesser.base - INFO - There is no empty masses values. Guesser did not guess any new values for masses attribute
+2025-03-18 10:44:51,477 - water_structure_analysis - INFO - Wczytano trajektorię w 0.07 sek.
+2025-03-18 10:44:51,479 - water_structure_analysis - INFO - Liczba atomów tlenu wody: 5500
+2025-03-18 10:44:51,479 - water_structure_analysis - INFO - Rozpoczynam złożoną analizę struktury wody...
+2025-03-18 10:44:51,479 - water_structure_analysis - INFO - --- [1] RDF Analysis ---
+2025-03-18 10:44:51,481 - water_structure_analysis - INFO - Obliczam RDF O–O...
+2025-03-18 10:44:51,481 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:44:51,481 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:45:46,231 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:45:46,688 - water_structure_analysis - INFO - Obliczam RDF O–H...
+2025-03-18 10:45:46,688 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:45:46,688 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:47:37,655 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:47:37,860 - water_structure_analysis - INFO - --- [2] H-bond Analysis ---
+2025-03-18 10:47:37,860 - water_structure_analysis - INFO - Rozpoczynam analizę wiązań wodorowych...
+2025-03-18 10:47:37,878 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:47:37,878 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:47:54,406 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:47:55,995 - water_structure_analysis - INFO - Zapisano statystyki wiązań wodorowych do water_analysis_results/hbond_stats.csv
+2025-03-18 10:47:55,995 - water_structure_analysis - INFO - --- [3] Tetrahedral Order + klastrowanie ---
+2025-03-18 10:47:56,388 - water_structure_analysis - INFO - Frame 0: średnie q=0.5845, frakcja q≥0.78=0.2627, n_clusters=494, largest=59
+2025-03-18 10:48:10,155 - water_structure_analysis - INFO - Frame 10: średnie q=0.5833, frakcja q≥0.78=0.2596, n_clusters=491, largest=49
+2025-03-18 10:48:24,459 - water_structure_analysis - INFO - Frame 20: średnie q=0.5823, frakcja q≥0.78=0.2618, n_clusters=501, largest=154
+2025-03-18 10:48:38,741 - water_structure_analysis - INFO - Frame 30: średnie q=0.5862, frakcja q≥0.78=0.2565, n_clusters=480, largest=81
+2025-03-18 10:48:53,384 - water_structure_analysis - INFO - Frame 40: średnie q=0.5788, frakcja q≥0.78=0.2542, n_clusters=469, largest=49
+2025-03-18 10:49:07,833 - water_structure_analysis - INFO - Frame 50: średnie q=0.5819, frakcja q≥0.78=0.2502, n_clusters=480, largest=93
+2025-03-18 10:51:22,276 - water_structure_analysis - INFO - Używam plików: ../../tip4p_273K/md.tpr i ../../tip4p_273K/md.xtc
+2025-03-18 10:51:22,277 - MDAnalysis.topology.TPRparser - INFO - Gromacs version   : b'VERSION 2024.3'
+2025-03-18 10:51:22,277 - MDAnalysis.topology.TPRparser - INFO - tpx version       : 133
+2025-03-18 10:51:22,277 - MDAnalysis.topology.TPRparser - INFO - tpx generation    : 28
+2025-03-18 10:51:22,277 - MDAnalysis.topology.TPRparser - INFO - tpx precision     : 4
+2025-03-18 10:51:22,278 - MDAnalysis.topology.TPRparser - INFO - tpx file_tag      : b'release'
+2025-03-18 10:51:22,278 - MDAnalysis.topology.TPRparser - INFO - tpx natoms        : 22000
+2025-03-18 10:51:22,278 - MDAnalysis.topology.TPRparser - INFO - tpx ngtc          : 1
+2025-03-18 10:51:22,278 - MDAnalysis.topology.TPRparser - INFO - tpx fep_state     : 0
+2025-03-18 10:51:22,278 - MDAnalysis.topology.TPRparser - INFO - tpx lambda        : 0.0
+2025-03-18 10:51:22,346 - MDAnalysis.core.universe - INFO - The attribute(s) masses, types have already been read from the topology file. The guesser will only guess empty values for this attribute, if any exists. To overwrite it by completely guessed values, you can pass the attribute to the force_guess parameter instead of the to_guess one
+2025-03-18 10:51:22,347 - MDAnalysis.guesser.base - INFO - There is no empty types values. Guesser did not guess any new values for types attribute
+2025-03-18 10:51:22,347 - MDAnalysis.guesser.base - INFO - There is no empty masses values. Guesser did not guess any new values for masses attribute
+2025-03-18 10:51:22,347 - water_structure_analysis - INFO - Wczytano trajektorię w 0.07 sek.
+2025-03-18 10:51:22,349 - water_structure_analysis - INFO - Liczba atomów tlenu wody: 5500
+2025-03-18 10:51:22,349 - water_structure_analysis - INFO - Rozpoczynam złożoną analizę struktury wody...
+2025-03-18 10:51:22,349 - water_structure_analysis - INFO - --- [1] RDF Analysis ---
+2025-03-18 10:51:22,351 - water_structure_analysis - INFO - Obliczam RDF O–O...
+2025-03-18 10:51:22,351 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:51:22,351 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:52:16,750 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:52:17,171 - water_structure_analysis - INFO - Obliczam RDF O–H...
+2025-03-18 10:52:17,171 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:52:17,171 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:54:06,805 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:54:07,008 - water_structure_analysis - INFO - --- [2] H-bond Analysis ---
+2025-03-18 10:54:07,009 - water_structure_analysis - INFO - Rozpoczynam analizę wiązań wodorowych...
+2025-03-18 10:54:07,026 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 10:54:07,026 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 10:54:23,820 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 10:54:25,543 - water_structure_analysis - INFO - Zapisano statystyki wiązań wodorowych do water_analysis_results/hbond_stats.csv
+2025-03-18 10:54:25,544 - water_structure_analysis - INFO - --- [3] Tetrahedral Order + klastrowanie ---
+2025-03-18 10:54:25,938 - water_structure_analysis - INFO - Frame 0: średnie q=0.5845, frakcja q≥0.78=0.2627, n_clusters=494, largest=59
+2025-03-18 10:54:39,722 - water_structure_analysis - INFO - Frame 10: średnie q=0.5833, frakcja q≥0.78=0.2596, n_clusters=491, largest=49
+2025-03-18 10:54:54,206 - water_structure_analysis - INFO - Frame 20: średnie q=0.5823, frakcja q≥0.78=0.2618, n_clusters=501, largest=154
+2025-03-18 10:55:08,263 - water_structure_analysis - INFO - Frame 30: średnie q=0.5862, frakcja q≥0.78=0.2565, n_clusters=480, largest=81
+2025-03-18 10:55:22,152 - water_structure_analysis - INFO - Frame 40: średnie q=0.5788, frakcja q≥0.78=0.2542, n_clusters=469, largest=49
+2025-03-18 10:55:36,213 - water_structure_analysis - INFO - Frame 50: średnie q=0.5819, frakcja q≥0.78=0.2502, n_clusters=480, largest=93
+2025-03-18 10:55:51,448 - water_structure_analysis - INFO - Frame 60: średnie q=0.5911, frakcja q≥0.78=0.2696, n_clusters=486, largest=94
+2025-03-18 10:56:05,863 - water_structure_analysis - INFO - Frame 70: średnie q=0.5790, frakcja q≥0.78=0.2475, n_clusters=464, largest=70
+2025-03-18 10:56:19,900 - water_structure_analysis - INFO - Frame 80: średnie q=0.5888, frakcja q≥0.78=0.2691, n_clusters=439, largest=96
+2025-03-18 10:56:34,136 - water_structure_analysis - INFO - Frame 90: średnie q=0.5797, frakcja q≥0.78=0.2533, n_clusters=487, largest=54
+2025-03-18 10:56:48,595 - water_structure_analysis - INFO - Frame 100: średnie q=0.5875, frakcja q≥0.78=0.2627, n_clusters=485, largest=82
+2025-03-18 10:56:49,587 - water_structure_analysis - INFO - Zakończono analizę tetraedryczną.
+2025-03-18 10:56:50,127 - water_structure_analysis - INFO - Zapisano podsumowanie Tetra Order do water_analysis_results/tetrahedral_time_evolution.png
+2025-03-18 10:56:50,127 - water_structure_analysis - INFO - Analiza kompletna!
+2025-03-18 11:07:02,310 - water_structure_analysis - INFO - Using files: ../../tip4p_273K/md.tpr and ../../tip4p_273K/md.xtc
+2025-03-18 11:07:02,312 - MDAnalysis.topology.TPRparser - INFO - Gromacs version   : b'VERSION 2024.3'
+2025-03-18 11:07:02,312 - MDAnalysis.topology.TPRparser - INFO - tpx version       : 133
+2025-03-18 11:07:02,312 - MDAnalysis.topology.TPRparser - INFO - tpx generation    : 28
+2025-03-18 11:07:02,312 - MDAnalysis.topology.TPRparser - INFO - tpx precision     : 4
+2025-03-18 11:07:02,312 - MDAnalysis.topology.TPRparser - INFO - tpx file_tag      : b'release'
+2025-03-18 11:07:02,312 - MDAnalysis.topology.TPRparser - INFO - tpx natoms        : 22000
+2025-03-18 11:07:02,312 - MDAnalysis.topology.TPRparser - INFO - tpx ngtc          : 1
+2025-03-18 11:07:02,312 - MDAnalysis.topology.TPRparser - INFO - tpx fep_state     : 0
+2025-03-18 11:07:02,312 - MDAnalysis.topology.TPRparser - INFO - tpx lambda        : 0.0
+2025-03-18 11:07:02,387 - MDAnalysis.core.universe - INFO - The attribute(s) types, masses have already been read from the topology file. The guesser will only guess empty values for this attribute, if any exists. To overwrite it by completely guessed values, you can pass the attribute to the force_guess parameter instead of the to_guess one
+2025-03-18 11:07:02,388 - MDAnalysis.guesser.base - INFO - There is no empty types values. Guesser did not guess any new values for types attribute
+2025-03-18 11:07:02,388 - MDAnalysis.guesser.base - INFO - There is no empty masses values. Guesser did not guess any new values for masses attribute
+2025-03-18 11:07:02,388 - water_structure_analysis - INFO - Loaded trajectory in 0.08 sec.
+2025-03-18 11:07:02,390 - water_structure_analysis - INFO - Number of water oxygen atoms: 5500
+2025-03-18 11:07:02,390 - water_structure_analysis - INFO - Starting comprehensive water structure analysis...
+2025-03-18 11:07:02,390 - water_structure_analysis - INFO - --- [1] RDF Analysis ---
+2025-03-18 11:07:02,392 - water_structure_analysis - INFO - Calculating O–O...
+2025-03-18 11:07:02,392 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 11:07:02,392 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 11:07:59,721 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 11:08:00,166 - water_structure_analysis - INFO - Calculating O–H...
+2025-03-18 11:08:00,166 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 11:08:00,166 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 11:09:57,098 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 11:09:57,315 - water_structure_analysis - INFO - --- [2] H-bond Analysis ---
+2025-03-18 11:09:57,315 - water_structure_analysis - INFO - Starting hydrogen bond analysis...
+2025-03-18 11:09:57,333 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 11:09:57,334 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 11:10:14,438 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 11:10:16,092 - water_structure_analysis - INFO - Saved H-bond statistics to water_analysis_results/hbond_stats.csv
+2025-03-18 11:10:16,092 - water_structure_analysis - INFO - --- [3] Tetrahedral Order + clustering ---
+2025-03-18 11:10:16,092 - water_structure_analysis - INFO - Starting to process 10 frames for visualization...
+2025-03-18 11:10:16,488 - water_structure_analysis - INFO - Frame 0 (0.0%): mean q=0.5845, q>=0.78 fraction=0.2627, n_clusters=494, largest=59
+2025-03-18 11:10:29,126 - water_structure_analysis - INFO - Completed tetrahedral analysis.
+2025-03-18 11:10:29,126 - water_structure_analysis - INFO - Creating animation from frames in water_analysis_results...
+2025-03-18 11:10:30,434 - water_structure_analysis - INFO - Writing animation to water_analysis_results/water_tetrahedral_animation.gif with 10 frames at 5 fps...
+2025-03-18 11:11:26,195 - water_structure_analysis - INFO - Using files: ../../tip4p_273K/md.tpr and ../../tip4p_273K/md.xtc
+2025-03-18 11:11:26,196 - MDAnalysis.topology.TPRparser - INFO - Gromacs version   : b'VERSION 2024.3'
+2025-03-18 11:11:26,196 - MDAnalysis.topology.TPRparser - INFO - tpx version       : 133
+2025-03-18 11:11:26,196 - MDAnalysis.topology.TPRparser - INFO - tpx generation    : 28
+2025-03-18 11:11:26,196 - MDAnalysis.topology.TPRparser - INFO - tpx precision     : 4
+2025-03-18 11:11:26,196 - MDAnalysis.topology.TPRparser - INFO - tpx file_tag      : b'release'
+2025-03-18 11:11:26,196 - MDAnalysis.topology.TPRparser - INFO - tpx natoms        : 22000
+2025-03-18 11:11:26,196 - MDAnalysis.topology.TPRparser - INFO - tpx ngtc          : 1
+2025-03-18 11:11:26,196 - MDAnalysis.topology.TPRparser - INFO - tpx fep_state     : 0
+2025-03-18 11:11:26,196 - MDAnalysis.topology.TPRparser - INFO - tpx lambda        : 0.0
+2025-03-18 11:11:26,272 - MDAnalysis.core.universe - INFO - The attribute(s) masses, types have already been read from the topology file. The guesser will only guess empty values for this attribute, if any exists. To overwrite it by completely guessed values, you can pass the attribute to the force_guess parameter instead of the to_guess one
+2025-03-18 11:11:26,272 - MDAnalysis.guesser.base - INFO - There is no empty types values. Guesser did not guess any new values for types attribute
+2025-03-18 11:11:26,273 - MDAnalysis.guesser.base - INFO - There is no empty masses values. Guesser did not guess any new values for masses attribute
+2025-03-18 11:11:26,273 - water_structure_analysis - INFO - Loaded trajectory in 0.08 sec.
+2025-03-18 11:11:26,275 - water_structure_analysis - INFO - Number of water oxygen atoms: 5500
+2025-03-18 11:11:26,275 - water_structure_analysis - INFO - Starting comprehensive water structure analysis...
+2025-03-18 11:11:26,275 - water_structure_analysis - INFO - --- [1] RDF Analysis ---
+2025-03-18 11:11:26,277 - water_structure_analysis - INFO - Calculating O–O...
+2025-03-18 11:11:26,277 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 11:11:26,277 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 11:12:21,580 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 11:12:22,008 - water_structure_analysis - INFO - Calculating O–H...
+2025-03-18 11:12:22,009 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 11:12:22,009 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 11:14:12,815 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 11:14:13,021 - water_structure_analysis - INFO - --- [2] H-bond Analysis ---
+2025-03-18 11:14:13,021 - water_structure_analysis - INFO - Starting hydrogen bond analysis...
+2025-03-18 11:14:13,038 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 11:14:13,038 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 11:14:29,867 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 11:14:31,498 - water_structure_analysis - INFO - Saved H-bond statistics to water_analysis_results/hbond_stats.csv
+2025-03-18 11:14:31,498 - water_structure_analysis - INFO - --- [3] Tetrahedral Order + clustering ---
+2025-03-18 11:14:31,498 - water_structure_analysis - INFO - Starting to process 101 frames for visualization...
+2025-03-18 11:14:31,895 - water_structure_analysis - INFO - Frame 0 (0.0%): mean q=0.5845, q>=0.78 fraction=0.2627, n_clusters=494, largest=59
+2025-03-18 11:14:44,174 - water_structure_analysis - INFO - Frame 10 (9.9%): mean q=0.5833, q>=0.78 fraction=0.2596, n_clusters=491, largest=49
+2025-03-18 11:14:56,863 - water_structure_analysis - INFO - Frame 20 (19.8%): mean q=0.5823, q>=0.78 fraction=0.2618, n_clusters=501, largest=154
+2025-03-18 11:15:09,587 - water_structure_analysis - INFO - Frame 30 (29.7%): mean q=0.5862, q>=0.78 fraction=0.2565, n_clusters=480, largest=81
+2025-03-18 11:15:22,324 - water_structure_analysis - INFO - Frame 40 (39.6%): mean q=0.5788, q>=0.78 fraction=0.2542, n_clusters=469, largest=49
+2025-03-18 11:15:35,040 - water_structure_analysis - INFO - Frame 50 (49.5%): mean q=0.5819, q>=0.78 fraction=0.2502, n_clusters=480, largest=93
+2025-03-18 11:15:47,526 - water_structure_analysis - INFO - Frame 60 (59.4%): mean q=0.5911, q>=0.78 fraction=0.2696, n_clusters=486, largest=94
+2025-03-18 11:16:00,765 - water_structure_analysis - INFO - Frame 70 (69.3%): mean q=0.5790, q>=0.78 fraction=0.2475, n_clusters=464, largest=70
+2025-03-18 11:16:13,266 - water_structure_analysis - INFO - Frame 80 (79.2%): mean q=0.5888, q>=0.78 fraction=0.2691, n_clusters=439, largest=96
+2025-03-18 11:16:25,922 - water_structure_analysis - INFO - Frame 90 (89.1%): mean q=0.5797, q>=0.78 fraction=0.2533, n_clusters=487, largest=54
+2025-03-18 11:16:38,839 - water_structure_analysis - INFO - Frame 100 (99.0%): mean q=0.5875, q>=0.78 fraction=0.2627, n_clusters=485, largest=82
+2025-03-18 11:16:39,676 - water_structure_analysis - INFO - Completed tetrahedral analysis.
+2025-03-18 11:16:39,676 - water_structure_analysis - INFO - Creating animation from frames in water_analysis_results...
+2025-03-18 11:16:53,114 - water_structure_analysis - INFO - Writing animation to water_analysis_results/water_tetrahedral_animation.gif with 101 frames at 5 fps...
+2025-03-18 11:24:07,565 - water_structure_analysis - INFO - Using files: ../../tip4p_273K/md.tpr and ../../tip4p_273K/md.xtc
+2025-03-18 11:24:07,567 - MDAnalysis.topology.TPRparser - INFO - Gromacs version   : b'VERSION 2024.3'
+2025-03-18 11:24:07,567 - MDAnalysis.topology.TPRparser - INFO - tpx version       : 133
+2025-03-18 11:24:07,567 - MDAnalysis.topology.TPRparser - INFO - tpx generation    : 28
+2025-03-18 11:24:07,567 - MDAnalysis.topology.TPRparser - INFO - tpx precision     : 4
+2025-03-18 11:24:07,568 - MDAnalysis.topology.TPRparser - INFO - tpx file_tag      : b'release'
+2025-03-18 11:24:07,568 - MDAnalysis.topology.TPRparser - INFO - tpx natoms        : 22000
+2025-03-18 11:24:07,568 - MDAnalysis.topology.TPRparser - INFO - tpx ngtc          : 1
+2025-03-18 11:24:07,568 - MDAnalysis.topology.TPRparser - INFO - tpx fep_state     : 0
+2025-03-18 11:24:07,568 - MDAnalysis.topology.TPRparser - INFO - tpx lambda        : 0.0
+2025-03-18 11:24:07,653 - MDAnalysis.core.universe - INFO - The attribute(s) masses, types have already been read from the topology file. The guesser will only guess empty values for this attribute, if any exists. To overwrite it by completely guessed values, you can pass the attribute to the force_guess parameter instead of the to_guess one
+2025-03-18 11:24:07,654 - MDAnalysis.guesser.base - INFO - There is no empty types values. Guesser did not guess any new values for types attribute
+2025-03-18 11:24:07,654 - MDAnalysis.guesser.base - INFO - There is no empty masses values. Guesser did not guess any new values for masses attribute
+2025-03-18 11:24:07,654 - water_structure_analysis - INFO - Loaded trajectory in 0.09 sec.
+2025-03-18 11:24:07,657 - water_structure_analysis - INFO - Number of water oxygen atoms: 5500
+2025-03-18 11:24:07,658 - water_structure_analysis - INFO - Starting comprehensive water structure analysis...
+2025-03-18 11:24:07,658 - water_structure_analysis - INFO - --- [1] RDF Analysis ---
+2025-03-18 11:24:07,659 - water_structure_analysis - INFO - Calculating O–O...
+2025-03-18 11:24:07,659 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 11:24:07,659 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 11:25:04,655 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 11:25:05,324 - water_structure_analysis - INFO - Calculating O–H...
+2025-03-18 11:25:05,325 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 11:25:05,325 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 11:26:58,338 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 11:26:58,567 - water_structure_analysis - INFO - --- [2] H-bond Analysis ---
+2025-03-18 11:26:58,567 - water_structure_analysis - INFO - Starting hydrogen bond analysis...
+2025-03-18 11:26:58,584 - MDAnalysis.analysis.base - INFO - Choosing frames to analyze
+2025-03-18 11:26:58,585 - MDAnalysis.analysis.base - INFO - Starting preparation
+2025-03-18 11:27:15,844 - MDAnalysis.analysis.base - INFO - Finishing up
+2025-03-18 11:27:17,585 - water_structure_analysis - INFO - Saved H-bond statistics to water_analysis_results/hbond_stats.csv
+2025-03-18 11:27:17,586 - water_structure_analysis - INFO - --- [3] Tetrahedral Order + clustering ---
+2025-03-18 11:27:17,586 - water_structure_analysis - INFO - Starting to process 101 frames for visualization...
+2025-03-18 11:27:17,586 - water_structure_analysis - INFO - Using every 5th frame for animation to save memory
+2025-03-18 11:27:18,033 - water_structure_analysis - INFO - Frame 0 (0.0%): mean q=0.5845, q>=0.78 fraction=0.2627, n_clusters=494, largest=59
+2025-03-18 11:27:23,058 - water_structure_analysis - INFO - Frame 10 (9.9%): mean q=0.5833, q>=0.78 fraction=0.2596, n_clusters=491, largest=49
+2025-03-18 11:27:27,924 - water_structure_analysis - INFO - Frame 20 (19.8%): mean q=0.5823, q>=0.78 fraction=0.2618, n_clusters=501, largest=154
+2025-03-18 11:27:32,733 - water_structure_analysis - INFO - Frame 30 (29.7%): mean q=0.5862, q>=0.78 fraction=0.2565, n_clusters=480, largest=81
+2025-03-18 11:27:37,427 - water_structure_analysis - INFO - Frame 40 (39.6%): mean q=0.5788, q>=0.78 fraction=0.2542, n_clusters=469, largest=49
+2025-03-18 11:27:42,264 - water_structure_analysis - INFO - Frame 50 (49.5%): mean q=0.5819, q>=0.78 fraction=0.2502, n_clusters=480, largest=93
+2025-03-18 11:27:47,177 - water_structure_analysis - INFO - Frame 60 (59.4%): mean q=0.5911, q>=0.78 fraction=0.2696, n_clusters=486, largest=94
+2025-03-18 11:27:52,096 - water_structure_analysis - INFO - Frame 70 (69.3%): mean q=0.5790, q>=0.78 fraction=0.2475, n_clusters=464, largest=70
+2025-03-18 11:27:57,026 - water_structure_analysis - INFO - Frame 80 (79.2%): mean q=0.5888, q>=0.78 fraction=0.2691, n_clusters=439, largest=96
+2025-03-18 11:28:01,841 - water_structure_analysis - INFO - Frame 90 (89.1%): mean q=0.5797, q>=0.78 fraction=0.2533, n_clusters=487, largest=54
+2025-03-18 11:28:06,674 - water_structure_analysis - INFO - Frame 100 (99.0%): mean q=0.5875, q>=0.78 fraction=0.2627, n_clusters=485, largest=82
+2025-03-18 11:28:07,238 - water_structure_analysis - INFO - Completed tetrahedral analysis.
+2025-03-18 11:28:07,238 - water_structure_analysis - INFO - Creating animation from frames in water_analysis_results...
+2025-03-18 11:28:07,239 - water_structure_analysis - INFO - Resizing 21 frames for animation...
+2025-03-18 11:28:07,239 - water_structure_analysis - INFO - Resizing frame 0/21...
+2025-03-18 11:28:07,757 - water_structure_analysis - INFO - Resizing frame 10/21...
+2025-03-18 11:28:08,274 - water_structure_analysis - INFO - Resizing frame 20/21...
+2025-03-18 11:28:08,327 - water_structure_analysis - INFO - Creating GIF with 21 frames at 5 fps...
+2025-03-18 11:28:08,417 - water_structure_analysis - INFO - Adding frame 10/21 to GIF...
+2025-03-18 11:28:08,469 - water_structure_analysis - INFO - Adding frame 20/21 to GIF...
+2025-03-18 11:28:08,625 - water_structure_analysis - INFO - Animation created successfully: water_analysis_results/water_tetrahedral_animation.gif
+2025-03-18 11:28:08,625 - water_structure_analysis - INFO - Created animation: water_analysis_results/water_tetrahedral_animation.gif
+2025-03-18 11:28:09,193 - water_structure_analysis - INFO - Saved time-evolution summary to water_analysis_results/tetrahedral_time_evolution.png
+2025-03-18 11:28:09,193 - water_structure_analysis - INFO - Analysis complete!
